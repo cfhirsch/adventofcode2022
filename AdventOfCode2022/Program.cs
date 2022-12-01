@@ -1,2 +1,4 @@
 ﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+using AdventOfCode2022.Puzzles;
+
+Dec1.SolvePartOne();
