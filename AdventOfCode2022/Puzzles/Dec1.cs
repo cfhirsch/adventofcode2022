@@ -7,10 +7,25 @@ namespace AdventOfCode2022.Puzzles
         // Find the most calories held by any elf.
         public static void SolvePartOne()
         {
+            int max = GetElfDictSum(1);
+            
+            Console.WriteLine($"Part One solution = {max}.");
+        }
+
+        // Find the the calories held by an elves with the three biggest calorie amounts.
+        public static void SolvePartTwo()
+        {
+            int max = GetElfDictSum(3);
+
+            Console.WriteLine($"Part Two solution = {max}.");
+        }
+
+        private static int GetElfDictSum(int take)
+        {
             var elfDict = new Dictionary<int, int>();
 
             int i = 1;
-            foreach(string line in PuzzleReader.ReadLines(1))
+            foreach (string line in PuzzleReader.ReadLines(1))
             {
                 if (string.IsNullOrEmpty(line))
                 {
@@ -27,16 +42,7 @@ namespace AdventOfCode2022.Puzzles
                 }
             }
 
-            int max = Int32.MinValue;
-            foreach ((_, int calories) in elfDict)
-            {
-                if (calories > max)
-                {
-                    max = calories;
-                }
-            }
-
-            Console.WriteLine($"Max calories = {max}.");
+            return elfDict.OrderByDescending(s => s.Value).Take(take).Sum(s => s.Value);
         }
     }
 }
