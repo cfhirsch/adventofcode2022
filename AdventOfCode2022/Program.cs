@@ -5,3 +5,4 @@ using AdventOfCode2022.Puzzles;
 //Dec1.SolvePartTwo();
 
 Dec2.SolvePartOne();
+Dec2.SolvePartTwo();
