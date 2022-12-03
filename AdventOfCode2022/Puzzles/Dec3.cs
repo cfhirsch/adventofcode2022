@@ -28,22 +28,48 @@ namespace AdventOfCode2022.Puzzles
 
                 foreach (char ch in common)
                 {
-                    int pri;
-                    if (char.IsUpper(ch))
-                    {
-                        pri = ((int)ch) - upperA + 27;
-                    }
-                    else
-                    {
-                        pri = ((int)ch) - lowerA + 1;
-                    }
-
+                    int pri = GetPriority(ch);
                     Console.WriteLine($"{ch} is in common, has priority {pri}.");
                     sum += pri;
                 }
             }
 
             Console.WriteLine($"Sum = {sum}.");
+        }
+
+        public static void SolvePartTwo()
+        {
+            int sum = 0;
+
+            List<string> lines = PuzzleReader.ReadLines(3).ToList();
+
+            for (int i = 0; i <= lines.Count - 3; i+=3)
+            {   
+                foreach (char ch in lines[i])
+                {
+                    if (lines[i + 1].Contains(ch) && lines[i + 2].Contains(ch))
+                    {
+                        int pri = GetPriority(ch);
+                        Console.WriteLine($"Badge = {ch}, pri = {pri}.");
+                        sum += pri;
+                        break;
+                    }
+                }
+            }
+
+            Console.WriteLine($"Sum = {sum}.");
+        }
+
+        private static int GetPriority(char ch)
+        {
+            int lowerA = (int)'a';
+            int upperA = (int)'A';
+            if (char.IsUpper(ch))
+            {
+                return ((int)ch) - upperA + 27;
+            }
+
+            return ((int)ch) - lowerA + 1;
         }
     }
 }

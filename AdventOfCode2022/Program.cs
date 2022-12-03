@@ -8,3 +8,4 @@ using AdventOfCode2022.Puzzles;
 //Dec2.SolvePartTwo();
 
 Dec3.SolvePartOne();
+Dec3.SolvePartTwo();
