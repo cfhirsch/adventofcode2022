@@ -7,5 +7,7 @@ using AdventOfCode2022.Puzzles;
 //Dec2.SolvePartOne();
 //Dec2.SolvePartTwo();
 
-Dec3.SolvePartOne();
-Dec3.SolvePartTwo();
+//Dec3.SolvePartOne();
+//Dec3.SolvePartTwo();
+
+Dec4.SolvePartOne();
