@@ -1,9 +1,4 @@
 ﻿using AdventOfCode2022.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AdventOfCode2022.Puzzles
 {
@@ -11,15 +6,27 @@ namespace AdventOfCode2022.Puzzles
     {
         public static void SolvePartOne()
         {
+            Solve(isPartTwo: false);
+        }
+
+        public static void SolvePartTwo()
+        {
+            Solve(isPartTwo: true);
+        }
+
+        public static void Solve(bool isPartTwo)
+        {
             string input = PuzzleReader.ReadLines(6).First();// xxxx
             int i = 0;
-            while (i < input.Length - 3)
+            int length = isPartTwo ? 14 : 4;
+
+            while (i < input.Length - length - 1)
             {
-                string subStr = input.Substring(i, 4);
+                string subStr = input.Substring(i, length);
                 int distinct = subStr.Select(c => c).Distinct().Count();
-                if (distinct == 4)
+                if (distinct == length)
                 {
-                    Console.WriteLine($"{i + 4} chars before first start-of-packet marker.");
+                    Console.WriteLine($"{i + length} chars before first start-of-packet marker.");
                     break;
                 }
 
