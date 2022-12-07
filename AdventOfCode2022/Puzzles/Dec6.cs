@@ -16,22 +16,12 @@ namespace AdventOfCode2022.Puzzles
 
         public static void Solve(bool isPartTwo)
         {
-            string input = PuzzleReader.ReadLines(6).First();// xxxx
-            int i = 0;
+            string input = PuzzleReader.ReadLines(6).First();
             int length = isPartTwo ? 14 : 4;
 
-            while (i < input.Length - length - 1)
-            {
-                string subStr = input.Substring(i, length);
-                int distinct = subStr.Select(c => c).Distinct().Count();
-                if (distinct == length)
-                {
-                    Console.WriteLine($"{i + length} chars before first start-of-packet marker.");
-                    break;
-                }
+            int pos = Enumerable.Range(0, input.Length - length - 1).Where(i => input.Substring(i, length).Distinct().Count() == length).OrderBy(i => i).First();
 
-                i++;
-            }
+            Console.WriteLine($"{pos + length} chars before first start-of-packet marker.");
         }
     }
 }

@@ -1,23 +1,44 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using AdventOfCode2022.Puzzles;
 
-//Dec1.SolvePartOne();
-//Dec1.SolvePartTwo();
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 1");
+Console.WriteLine("=========================================================================");
+Dec1.SolvePartOne();
+Dec1.SolvePartTwo();
 
-//Dec2.SolvePartOne();
-//Dec2.SolvePartTwo();
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 2");
+Console.WriteLine("=========================================================================");
+Dec2.SolvePartOne();
+Dec2.SolvePartTwo();
 
-//Dec3.SolvePartOne();
-//Dec3.SolvePartTwo();
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 3");
+Console.WriteLine("=========================================================================");
+Dec3.SolvePartOne();
+Dec3.SolvePartTwo();
 
-//Dec4.SolvePartOne();
-//Dec4.SolvePartTwo();
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 4");
+Console.WriteLine("=========================================================================");
+Dec4.SolvePartOne();
+Dec4.SolvePartTwo();
 
-//Dec5.SolvePartOne();
-//Dec5.SolvePartTwo();
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 5");
+Console.WriteLine("=========================================================================");
+Dec5.SolvePartOne();
+Dec5.SolvePartTwo();
 
-//Dec6.SolvePartOne();
-//Dec6.SolvePartTwo();
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 6");
+Console.WriteLine("=========================================================================");
+Dec6.SolvePartOne();
+Dec6.SolvePartTwo();
 
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 7");
+Console.WriteLine("=========================================================================");
 Dec7.SolvePartOne();
 Dec7.SolvePartTwo();
