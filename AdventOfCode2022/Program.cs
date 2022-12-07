@@ -20,3 +20,4 @@ using AdventOfCode2022.Puzzles;
 //Dec6.SolvePartTwo();
 
 Dec7.SolvePartOne();
+Dec7.SolvePartTwo();

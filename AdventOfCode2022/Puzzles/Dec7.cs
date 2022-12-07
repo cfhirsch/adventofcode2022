@@ -1,6 +1,5 @@
 ﻿using AdventOfCode2022.Utilities;
 using System.Text;
-using System.Xml.Schema;
 
 namespace AdventOfCode2022.Puzzles
 {
@@ -8,7 +7,28 @@ namespace AdventOfCode2022.Puzzles
     {
         public static void SolvePartOne()
         {
-            // Build the tree
+            Directory root = BuildTree();
+
+            Console.WriteLine(root);
+
+            int sum = GetDirectories(root).Select(d => d.Size).Where(s => s <= 100000).Sum();
+            Console.WriteLine($"Sum = {sum}");
+        }
+
+        public static void SolvePartTwo()
+        {
+            const int totalDiskSpace = 70000000;
+            const int freeDiskSpaceNeeded = 30000000;
+
+            Directory root = BuildTree();
+            int freeDiskSpace = totalDiskSpace - root.Size;
+
+            int spaceToFree = GetDirectories(root).Where(d => freeDiskSpace + d.Size >= freeDiskSpaceNeeded).Select(d => d.Size).OrderBy(s => s).First();
+            Console.WriteLine($"Space To Free = {spaceToFree}");
+        }
+
+        public static Directory BuildTree()
+        {
             var root = new Directory(null, "/");
             Node current = root;
 
@@ -49,9 +69,9 @@ namespace AdventOfCode2022.Puzzles
                         break;
 
                     case Mode.List:
-                        long size;
+                        int size;
                         string name = commandParts[1];
-                        if (Int64.TryParse(commandParts[0], out size))
+                        if (Int32.TryParse(commandParts[0], out size))
                         {
                             var child = GetChild(current, name) as File;
                             if (child == null)
@@ -74,10 +94,7 @@ namespace AdventOfCode2022.Puzzles
                 }
             }
 
-            Console.WriteLine(root);
-
-            long sum = GetDirectories((Directory)root).Select(d => d.Size).Where(s => s <= 100000).Sum();
-            Console.WriteLine($"Sum = {sum}");
+            return root;
         }
 
         private static Node GetChild(Node node, string name)
@@ -112,7 +129,7 @@ namespace AdventOfCode2022.Puzzles
 
     internal abstract class Node
     {
-        public abstract long Size { get; }
+        public abstract int Size { get; }
 
         public string Name { get; protected set; }
 
@@ -137,16 +154,16 @@ namespace AdventOfCode2022.Puzzles
 
     internal class File : Node
     {
-        private long size;
+        private int size;
 
-        public File(Node parent, string name, long size)
+        public File(Node parent, string name, int size)
         {
             this.Parent = parent;
             this.Name = name;
             this.size = size;
         }
 
-        public override long Size => this.size;
+        public override int Size => this.size;
 
         public override string ToString()
         {
@@ -173,7 +190,7 @@ namespace AdventOfCode2022.Puzzles
 
         public List<Node> Children { get; private set; }
 
-        public override long Size
+        public override int Size
         {
             get
             {
