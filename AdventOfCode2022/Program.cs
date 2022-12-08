@@ -47,3 +47,4 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 8");
 Console.WriteLine("=========================================================================");
 Dec8.SolvePartOne();
+Dec8.SolvePartTwo();

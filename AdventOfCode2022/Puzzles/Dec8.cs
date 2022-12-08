@@ -1,10 +1,4 @@
 ﻿using AdventOfCode2022.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AdventOfCode2022.Puzzles
 {
@@ -97,6 +91,107 @@ namespace AdventOfCode2022.Puzzles
             }
 
             Console.WriteLine($"{visibleTreeCount} trees are visible.");
+        }
+
+        public static void SolvePartTwo()
+        {
+            int[,] grid = ReadGrid();
+
+            int xMax = grid.GetLength(0);
+            int yMax = grid.GetLength(1);
+
+            int maxScore = Int32.MinValue;
+            for (int x = 0; x < xMax; x++)
+            {
+                for (int y = 0; y < yMax; y++)
+                {
+                    int score = ScenicScore(grid, x, y);
+                    if (score > maxScore)
+                    {
+                        maxScore = score;
+                    }
+                }
+            }
+
+            Console.WriteLine($"Max scenic score = {maxScore}.");
+        }
+
+        private static int ScenicScore(int[,] grid, int x, int y)
+        {
+            int xMax = grid.GetLength(0);
+            int yMax = grid.GetLength(1);
+
+            if (x == 0 || x == xMax - 1 || y == 0 || y == yMax - 1)
+            {
+                return 0;
+            }
+
+            int product = 1;
+            // Up.
+            int viewCount = 0;
+            for (int y1 = y - 1; y1 >= 0; y1--)
+            {
+                viewCount++;
+                if (grid[x, y1] >= grid[x, y])
+                {
+                    break;
+                }
+            }
+
+            product *= viewCount;
+            if (product == 0)
+            {
+                return 0;
+            }
+
+            // Right
+            viewCount = 0;
+            for (int x1 = x + 1; x1 < xMax; x1++)
+            {
+                viewCount++;
+                if (grid[x1, y] >= grid[x, y])
+                {
+                    break;
+                }
+            }
+
+            product *= viewCount;
+            if (product == 0)
+            {
+                return 0;
+            }
+
+            // Down.
+            viewCount = 0;
+            for (int y1 = y + 1; y1 < yMax; y1++)
+            {
+                viewCount++;
+                if (grid[x, y1] >= grid[x, y])
+                {
+                    break;
+                }
+            }
+
+            product *= viewCount;
+            if (product == 0)
+            {
+                return 0;
+            }
+
+            // Left
+            viewCount = 0;
+            for (int x1 = x - 1; x1 >= 0; x1--)
+            {
+                viewCount++;
+                if (grid[x1, y] >= grid[x, y])
+                {
+                    break;
+                }
+            }
+
+            product *= viewCount;
+
+            return product;
         }
 
         private static int[,] ReadGrid()
