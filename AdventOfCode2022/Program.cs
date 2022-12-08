@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using AdventOfCode2022.Puzzles;
 
-Console.WriteLine("=========================================================================");
+/*Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 1");
 Console.WriteLine("=========================================================================");
 Dec1.SolvePartOne();
@@ -41,4 +41,9 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 7");
 Console.WriteLine("=========================================================================");
 Dec7.SolvePartOne();
-Dec7.SolvePartTwo();
+Dec7.SolvePartTwo();*/
+
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 8");
+Console.WriteLine("=========================================================================");
+Dec8.SolvePartOne();
