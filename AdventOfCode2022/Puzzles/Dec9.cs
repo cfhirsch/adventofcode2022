@@ -45,10 +45,11 @@ namespace AdventOfCode2022.Puzzles
                 string move = lineParts[0];
                 int numToMove = Int32.Parse(lineParts[1]);
 
-                // Move the head of the rope.
                 for (int i = 0; i < numToMove; i++)
                 {
                     var nextKnots = new List<Point>();
+
+                    // Move the head knot of the rope.
                     Point headPos = knots.First();
                     int newHeadX = headPos.X, newHeadY = headPos.Y;
                     switch (move)
@@ -101,8 +102,8 @@ namespace AdventOfCode2022.Puzzles
                         {
                             newNextX = nextPos.X + 1;
                         }
-                        // Otherwise, if the head and tail aren't touching and aren't in the same row or column,
-                        // the tail always moves one step diagonally to keep up
+                        // Otherwise, if a knot and the next knot aren't touching and aren't in the same row or column,
+                        // the next knot always moves one step diagonally to keep up.
                         else if (!AreTouching(currentPos, nextPos))
                         {
                             bool above = currentPos.Y - nextPos.Y > 0;
