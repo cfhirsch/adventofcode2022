@@ -7,15 +7,25 @@ namespace AdventOfCode2022.Puzzles
     {
         public static void SolvePartOne(bool show)
         {
+            var knots = new List<Point>
+            {
+                new Point(0, 0),
+                new Point(0, 0)
+            };
+
+            Solve(knots, show);
+        }
+
+        public static void Solve(List<Point> knots,  bool show)
+        {
             int minX = 0, maxX = 0, minY = 0, maxY = 0;
-            Point headPos = new Point(0, 0);
-            Point tailPos = new Point(0, 0);
             var visitedByTail = new HashSet<Point>();
-            visitedByTail.Add(tailPos);
+
+            visitedByTail.Add(knots.Last());
 
             if (show)
             {
-                Display(minX, maxX, minY, maxY, headPos, tailPos);
+                Display(minX, maxX, minY, maxY, knots);
             }
 
             foreach (string line in PuzzleReader.ReadLines(9))
@@ -27,8 +37,9 @@ namespace AdventOfCode2022.Puzzles
                 // Move the head of the rope.
                 for (int i = 0; i < numToMove; i++)
                 {
+                    var nextKnots = new List<Point>();
+                    Point headPos = knots.First();
                     int newHeadX = headPos.X, newHeadY = headPos.Y;
-                    int newTailX = tailPos.X, newTailY = tailPos.Y;
                     switch (move)
                     {
                         case "U":
@@ -52,71 +63,84 @@ namespace AdventOfCode2022.Puzzles
                     }
 
                     headPos = new Point(newHeadX, newHeadY);
+                    nextKnots.Add(headPos);
 
-                    // If the head is ever two steps directly up, down, left, or right from the tail,
-                    // the tail must also move one step in that direction so it remains close enough.
-                    if (headPos.X == tailPos.X && headPos.Y - tailPos.Y == 2)
+                    for (int j = 1; j < knots.Count; j++)
                     {
-                        newTailY = tailPos.Y + 1;
-                    }
-                    else if (headPos.X == tailPos.X && tailPos.Y - headPos.Y == 2)
-                    {
-                        newTailY = tailPos.Y - 1;
-                    }
-                    else if (headPos.Y == tailPos.Y && tailPos.X - headPos.X == 2)
-                    {
-                        newTailX = tailPos.X - 1;
-                    }
-                    else if (headPos.Y == tailPos.Y && headPos.X - tailPos.X == 2)
-                    {
-                        newTailX = tailPos.X + 1;
-                    }
-                    // Otherwise, if the head and tail aren't touching and aren't in the same row or column,
-                    // the tail always moves one step diagonally to keep up
-                    else if (!AreTouching(headPos, tailPos))
-                    {
-                        bool above = headPos.Y - tailPos.Y > 0;
-                        bool left = headPos.X - tailPos.X < 0;
+                        Point currentPos = nextKnots[j - 1];
+                        Point nextPos = knots[j];
 
-                        if (above)
+                        int newNextX = nextPos.X, newNextY = nextPos.Y;
+
+                        // If a knot is ever two steps directly up, down, left, or right from the next knot,
+                        // the next knot must also move one step in that direction so it remains close enough.
+                        if (currentPos.X == nextPos.X && currentPos.Y - nextPos.Y == 2)
                         {
-                            if (left)
+                            newNextY = nextPos.Y + 1;
+                        }
+                        else if (currentPos.X == nextPos.X && nextPos.Y - currentPos.Y == 2)
+                        {
+                            newNextY = nextPos.Y - 1;
+                        }
+                        else if (currentPos.Y == nextPos.Y && nextPos.X - currentPos.X == 2)
+                        {
+                            newNextX = nextPos.X - 1;
+                        }
+                        else if (currentPos.Y == nextPos.Y && currentPos.X - nextPos.X == 2)
+                        {
+                            newNextX = nextPos.X + 1;
+                        }
+                        // Otherwise, if the head and tail aren't touching and aren't in the same row or column,
+                        // the tail always moves one step diagonally to keep up
+                        else if (!AreTouching(headPos, nextPos))
+                        {
+                            bool above = headPos.Y - nextPos.Y > 0;
+                            bool left = headPos.X - nextPos.X < 0;
+
+                            if (above)
                             {
-                                newTailX = tailPos.X - 1;
-                                newTailY = tailPos.Y + 1;
+                                if (left)
+                                {
+                                    newNextX = nextPos.X - 1;
+                                    newNextY = nextPos.Y + 1;
+                                }
+                                else
+                                {
+                                    newNextX = nextPos.X + 1;
+                                    newNextY = nextPos.Y + 1;
+                                }
                             }
                             else
                             {
-                                newTailX = tailPos.X + 1;
-                                newTailY = tailPos.Y + 1;
+                                if (left)
+                                {
+                                    newNextX = nextPos.X - 1;
+                                    newNextY = nextPos.Y - 1;
+                                }
+                                else
+                                {
+                                    newNextX = nextPos.X + 1;
+                                    newNextY = nextPos.Y - 1;
+                                }
                             }
                         }
-                        else
-                        {
-                            if (left)
-                            {
-                                newTailX = tailPos.X - 1;
-                                newTailY = tailPos.Y - 1;
-                            }
-                            else
-                            {
-                                newTailX = tailPos.X + 1;
-                                newTailY = tailPos.Y - 1;
-                            }
-                        }
+
+                        nextPos = new Point(newNextX, newNextY);
+                        nextKnots.Add(nextPos);
+
+                        minX = Min(minX, headPos.X, nextPos.X);
+                        maxX = Max(maxX, headPos.X, nextPos.X);
+                        minY = Min(minY, headPos.Y, nextPos.Y);
+                        maxY = Max(maxY, headPos.Y, nextPos.Y);
                     }
 
-                    tailPos = new Point(newTailX, newTailY);
-                    visitedByTail.Add(tailPos);
-
-                    minX = Min(minX, headPos.X, tailPos.X);
-                    maxX = Max(maxX, headPos.X, tailPos.X);
-                    minY = Min(minY, headPos.Y, tailPos.Y);
-                    maxY = Max(maxY, headPos.Y, tailPos.Y);
+                    knots = nextKnots;
+                    visitedByTail.Add(knots.Last());
 
                     if (show)
                     {
-                        Display(minX, maxX, minY, maxY, headPos, tailPos);
+                        Display(minX, maxX, minY, maxY, knots);
+                        Console.ReadLine();
                     }
                 }
             }
@@ -124,6 +148,7 @@ namespace AdventOfCode2022.Puzzles
             if (show)
             {
                 DisplayTailVisited(minX, maxX, minY, maxY, visitedByTail);
+                Console.ReadLine();
             }
 
             Console.WriteLine($"The tail of the rope visited {visitedByTail.Count} positions.");
@@ -158,7 +183,7 @@ namespace AdventOfCode2022.Puzzles
             return false;
         }
 
-        private static void Display(int minX, int maxX, int minY, int maxY, Point head, Point tail)
+        private static void Display(int minX, int maxX, int minY, int maxY, List<Point> knots)
         {
             Point origin = new Point(0, 0);
 
@@ -167,22 +192,18 @@ namespace AdventOfCode2022.Puzzles
                 for (int x = minX; x <= maxX; x++)
                 {
                     Point current = new Point(x, y);
-                    if (current == head)
+
+                    string symbol = current == origin ? "s" : ".";
+                    for (int i = 0; i < knots.Count; i++)
                     {
-                        Console.Write("H");
+                        if (current == knots[i])
+                        {
+                            symbol = (i == 0) ? "H" : $"{i}";
+                            break;
+                        }
                     }
-                    else if (current == tail)
-                    {
-                        Console.Write("T");
-                    }
-                    else if (current == origin)
-                    {
-                        Console.Write("s");
-                    }
-                    else
-                    {
-                        Console.Write(".");
-                    }
+
+                    Console.Write(symbol);
                 }
 
                 Console.WriteLine();
