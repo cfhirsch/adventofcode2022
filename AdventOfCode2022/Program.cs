@@ -52,4 +52,5 @@ Dec8.SolvePartTwo();*/
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 9");
 Console.WriteLine("=========================================================================");
-Dec9.SolvePartOne(show: true);
+Dec9.SolvePartOne(show: false);
+Dec9.SolvePartTwo(show: true);

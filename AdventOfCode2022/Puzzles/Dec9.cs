@@ -16,6 +16,17 @@ namespace AdventOfCode2022.Puzzles
             Solve(knots, show);
         }
 
+        public static void SolvePartTwo(bool show)
+        {
+            var knots = new List<Point>();
+            for (int i = 0; i < 10; i++)
+            {
+                knots.Add(new Point(0, 0));
+            }
+
+            Solve(knots, show);
+        }
+
         public static void Solve(List<Point> knots,  bool show)
         {
             int minX = 0, maxX = 0, minY = 0, maxY = 0;
@@ -92,10 +103,10 @@ namespace AdventOfCode2022.Puzzles
                         }
                         // Otherwise, if the head and tail aren't touching and aren't in the same row or column,
                         // the tail always moves one step diagonally to keep up
-                        else if (!AreTouching(headPos, nextPos))
+                        else if (!AreTouching(currentPos, nextPos))
                         {
-                            bool above = headPos.Y - nextPos.Y > 0;
-                            bool left = headPos.X - nextPos.X < 0;
+                            bool above = currentPos.Y - nextPos.Y > 0;
+                            bool left = currentPos.X - nextPos.X < 0;
 
                             if (above)
                             {
