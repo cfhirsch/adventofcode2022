@@ -12,6 +12,12 @@ namespace AdventOfCode2022.Puzzles
             Point tailPos = new Point(0, 0);
             var visitedByTail = new HashSet<Point>();
             visitedByTail.Add(tailPos);
+
+            if (show)
+            {
+                Display(minX, maxX, minY, maxY, headPos, tailPos);
+            }
+
             foreach (string line in PuzzleReader.ReadLines(9))
             {
                 string[] lineParts = line.Split(" ");
@@ -26,19 +32,19 @@ namespace AdventOfCode2022.Puzzles
                     switch (move)
                     {
                         case "U":
-                            newHeadY = headPos.Y + numToMove;
+                            newHeadY++;
                             break;
 
                         case "R":
-                            newHeadX = headPos.X + numToMove;
+                            newHeadX++;
                             break;
 
                         case "D":
-                            newHeadY = headPos.Y + numToMove;
+                            newHeadY--;
                             break;
 
                         case "L":
-                            newHeadX = headPos.X - numToMove;
+                            newHeadX--;
                             break;
 
                         default:
@@ -49,19 +55,19 @@ namespace AdventOfCode2022.Puzzles
 
                     // If the head is ever two steps directly up, down, left, or right from the tail,
                     // the tail must also move one step in that direction so it remains close enough.
-                    if (headPos.Y - tailPos.Y == 2)
+                    if (headPos.X == tailPos.X && headPos.Y - tailPos.Y == 2)
                     {
                         newTailY = tailPos.Y + 1;
                     }
-                    else if (tailPos.Y - headPos.Y == 2)
+                    else if (headPos.X == tailPos.X && tailPos.Y - headPos.Y == 2)
                     {
                         newTailY = tailPos.Y - 1;
                     }
-                    else if (tailPos.X - headPos.X == 2)
+                    else if (headPos.Y == tailPos.Y && tailPos.X - headPos.X == 2)
                     {
                         newTailX = tailPos.X - 1;
                     }
-                    else if (headPos.X - tailPos.X == 2)
+                    else if (headPos.Y == tailPos.Y && headPos.X - tailPos.X == 2)
                     {
                         newTailX = tailPos.X + 1;
                     }
@@ -103,50 +109,15 @@ namespace AdventOfCode2022.Puzzles
                     tailPos = new Point(newTailX, newTailY);
                     visitedByTail.Add(tailPos);
 
-                    if (headPos.X < minX)
-                    {
-                        minX = headPos.X;
-                    }
+                    minX = Min(minX, headPos.X, tailPos.X);
+                    maxX = Max(maxX, headPos.X, tailPos.X);
+                    minY = Min(minY, headPos.Y, tailPos.Y);
+                    maxY = Max(maxY, headPos.Y, tailPos.Y);
 
-                    if (tailPos.X < minX)
+                    if (show)
                     {
-                        minX = tailPos.X;
+                        Display(minX, maxX, minY, maxY, headPos, tailPos);
                     }
-
-                    if (headPos.X > maxX)
-                    {
-                        maxX = headPos.X;
-                    }
-
-                    if (tailPos.X > maxX)
-                    {
-                        maxX = tailPos.X;
-                    }
-
-                    if (headPos.Y < minY)
-                    {
-                        minY = headPos.Y;
-                    }
-
-                    if (tailPos.Y < minY)
-                    {
-                        minY = tailPos.Y;
-                    }
-
-                    if (headPos.Y > maxY)
-                    {
-                        maxY = headPos.Y;
-                    }
-
-                    if (tailPos.X > maxX)
-                    {
-                        maxY = tailPos.Y;
-                    }
-                }
-
-                if (show)
-                {
-                    Display(minX, maxX, minY, maxY, headPos, tailPos);
                 }
             }
 
@@ -200,13 +171,13 @@ namespace AdventOfCode2022.Puzzles
                     {
                         Console.Write("H");
                     }
-                    else if (current == origin)
-                    {
-                        Console.Write("s");
-                    }
                     else if (current == tail)
                     {
                         Console.Write("T");
+                    }
+                    else if (current == origin)
+                    {
+                        Console.Write("s");
                     }
                     else
                     {
@@ -216,6 +187,8 @@ namespace AdventOfCode2022.Puzzles
 
                 Console.WriteLine();
             }
+
+            Console.WriteLine();
         }
 
         private static void DisplayTailVisited(int minX, int maxX, int minY, int maxY, HashSet<Point> tailVisited)
@@ -233,7 +206,7 @@ namespace AdventOfCode2022.Puzzles
                     }
                     else if (tailVisited.Contains(current))
                     {
-                        Console.Write("X");
+                        Console.Write("#");
                     }
                     else
                     {
@@ -243,6 +216,18 @@ namespace AdventOfCode2022.Puzzles
 
                 Console.WriteLine();
             }
+
+            Console.WriteLine();
+        }
+
+        private static int Max(params int[] nums)
+        {
+            return nums.Max(x => x);
+        }
+
+        private static int Min(params int[] nums)
+        {
+            return nums.Min(x => x);
         }
     }
 }
