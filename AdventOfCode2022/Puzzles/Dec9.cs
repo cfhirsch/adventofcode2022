@@ -140,10 +140,10 @@ namespace AdventOfCode2022.Puzzles
                         nextPos = new Point(newNextX, newNextY);
                         nextKnots.Add(nextPos);
 
-                        minX = Min(minX, headPos.X, nextPos.X);
-                        maxX = Max(maxX, headPos.X, nextPos.X);
-                        minY = Min(minY, headPos.Y, nextPos.Y);
-                        maxY = Max(maxY, headPos.Y, nextPos.Y);
+                        minX = Min(minX, currentPos.X, nextPos.X);
+                        maxX = Max(maxX, currentPos.X, nextPos.X);
+                        minY = Min(minY, currentPos.Y, nextPos.Y);
+                        maxY = Max(maxY, currentPos.Y, nextPos.Y);
                     }
 
                     knots = nextKnots;
