@@ -168,31 +168,7 @@ namespace AdventOfCode2022.Puzzles
 
         private static bool AreTouching(Point p1, Point p2)
         {
-            // Same location.
-            if (p1 == p2)
-            {
-                return true;
-            }
-
-            // Adjacent on same column
-            if (p1.X == p2.X && Math.Abs(p1.Y - p2.Y) == 1)
-            {
-                return true;
-            }
-
-            // Adjacent on same row
-            if (p1.Y == p2.Y && Math.Abs(p1.X - p2.X) == 1)
-            {
-                return true;
-            }
-
-            // Diagonally adjacent
-            if (Math.Abs(p1.X - p2.X) == 1 && Math.Abs(p1.Y - p2.Y) == 1)
-            {
-                return true;
-            }
-
-            return false;
+            return (Math.Abs(p1.X - p2.X) <= 1 && Math.Abs(p1.Y - p2.Y) <= 1);
         }
 
         private static void Display(int minX, int maxX, int minY, int maxY, List<Point> knots)
