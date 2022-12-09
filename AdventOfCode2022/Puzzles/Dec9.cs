@@ -106,35 +106,11 @@ namespace AdventOfCode2022.Puzzles
                         // the next knot always moves one step diagonally to keep up.
                         else if (!AreTouching(currentPos, nextPos))
                         {
-                            bool above = currentPos.Y - nextPos.Y > 0;
-                            bool left = currentPos.X - nextPos.X < 0;
+                            int left = (currentPos.X - nextPos.X < 0) ? -1 : 1;
+                            int above = (currentPos.Y - nextPos.Y > 0) ? 1 : -1;
 
-                            if (above)
-                            {
-                                if (left)
-                                {
-                                    newNextX = nextPos.X - 1;
-                                    newNextY = nextPos.Y + 1;
-                                }
-                                else
-                                {
-                                    newNextX = nextPos.X + 1;
-                                    newNextY = nextPos.Y + 1;
-                                }
-                            }
-                            else
-                            {
-                                if (left)
-                                {
-                                    newNextX = nextPos.X - 1;
-                                    newNextY = nextPos.Y - 1;
-                                }
-                                else
-                                {
-                                    newNextX = nextPos.X + 1;
-                                    newNextY = nextPos.Y - 1;
-                                }
-                            }
+                            newNextX += left;
+                            newNextY += above;
                         }
 
                         nextPos = new Point(newNextX, newNextY);
