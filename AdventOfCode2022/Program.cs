@@ -47,10 +47,15 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 8");
 Console.WriteLine("=========================================================================");
 Dec8.SolvePartOne();
-Dec8.SolvePartTwo();*/
+Dec8.SolvePartTwo();
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 9");
 Console.WriteLine("=========================================================================");
 Dec9.SolvePartOne(show: false);
-Dec9.SolvePartTwo(show: false);
+Dec9.SolvePartTwo(show: false);*/
+
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 10");
+Console.WriteLine("=========================================================================");
+Dec10.SolvePartOne();
