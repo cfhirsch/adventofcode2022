@@ -1,10 +1,21 @@
 ﻿using AdventOfCode2022.Utilities;
+using System.Text;
 
 namespace AdventOfCode2022.Puzzles
 {
     internal static  class Dec10
     {
         public static void SolvePartOne()
+        {
+            Solve(isPartTwo: false);
+        }
+
+        public static void SolvePartTwo()
+        {
+            Solve(isPartTwo: true);
+        }
+
+        private static void Solve(bool isPartTwo)
         {
             long x = 1;
             int cycle = 0;
@@ -15,17 +26,43 @@ namespace AdventOfCode2022.Puzzles
             int operand = 0;
 
             var signalStrengths = new List<long>();
+            var crt = new StringBuilder();
+            int crtPos = -1;
             
-            while (cycle <= 220)
+            while (true)
             {
                 cycle++;
+                crtPos++;
 
-                // Find the signal strength during the 20th, 60th, 100th, 140th, 180th, and 220th cycles.
-                if (cycle == 20 || cycle == 60 || cycle == 100 || cycle == 140 || cycle == 180 || cycle == 220)
+                if (crtPos > 39)
                 {
-                    long signalStrength = cycle * x;
-                    Console.WriteLine($"cycle = {cycle}, x = {x}, strength = {signalStrength}.");
-                    signalStrengths.Add(signalStrength);
+                    if (isPartTwo)
+                    {
+                        Console.WriteLine(crt);
+                    }
+
+                    crt = new StringBuilder();
+                    crtPos = 0;
+                }
+
+                if (!isPartTwo)
+                {
+                    // Find the signal strength during the 20th, 60th, 100th, 140th, 180th, and 220th cycles.
+                    if (cycle == 20 || cycle == 60 || cycle == 100 || cycle == 140 || cycle == 180 || cycle == 220)
+                    {
+                        long signalStrength = cycle * x;
+                        Console.WriteLine($"cycle = {cycle}, x = {x}, strength = {signalStrength}.");
+                        signalStrengths.Add(signalStrength);
+                    }
+                }
+
+                if (Math.Abs(crtPos - x) <= 1)
+                {
+                    crt.Append("#");
+                }
+                else
+                {
+                    crt.Append(".");
                 }
 
                 if (currentCommand == "addx")
@@ -51,7 +88,15 @@ namespace AdventOfCode2022.Puzzles
             }
 
             long sum = signalStrengths.Sum();
-            Console.WriteLine($"Sum of signal strengths = {sum}.");
+
+            if (!isPartTwo)
+            {
+                Console.WriteLine($"Sum of signal strengths = {sum}.");
+            }
+            else
+            {
+                Console.WriteLine(crt);
+            }
         }
     }
 }
