@@ -17,7 +17,6 @@ namespace AdventOfCode2022.Puzzles
             // Parse monkeys.
             List<long> items = null;
             string op = null;
-            int operand = 1;
             int divisor = -1;
             int ifTrueMonkey = -1, ifFalseMonkey = -1;
             var monkeys = new List<Monkey>();
@@ -27,7 +26,7 @@ namespace AdventOfCode2022.Puzzles
                 {
                     if (items != null)
                     {
-                        var monkey = new Monkey(op, operand, divisor, ifTrueMonkey, ifFalseMonkey);
+                        var monkey = new Monkey(op, divisor, ifTrueMonkey, ifFalseMonkey);
                         foreach (long item in items)
                         {
                             monkey.Items.Enqueue(item);
@@ -42,39 +41,28 @@ namespace AdventOfCode2022.Puzzles
                         ifFalseMonkey = -1;
                     }
                 }
-                else if (line.StartsWith("Starting items: "))
+                else if (line.Contains("Starting items: "))
                 {
-                    string subStr = line.Substring(line.IndexOf("Starting items: "));
+                    string subStr = line.Substring(line.IndexOf(":") + 2);
                     items = new List<long>();
                     foreach (string strPart in subStr.Split(",", StringSplitOptions.RemoveEmptyEntries))
                     {
                         items.Add(Int64.Parse(strPart));
                     }
                 }
-                else if (line.StartsWith("Operation: "))
+                else if (line.Contains("Operation: "))
                 {
-                    if (line.Contains("+"))
-                    {
-                        op = "+";
-                    }
-                    else if (line.Contains("*"))
-                    {
-                        op = "*";
-                    }
-                    else
-                    {
-                        throw new Exception("Did not find expected operator.");
-                    }
+                    op = line.Substring(line.IndexOf("=") + 2);
                 }
-                else if (line.StartsWith("Test: "))
+                else if (line.Contains("Test: "))
                 {
                     divisor = Int32.Parse(opReg.Match(line).Value);
                 }
-                else if (line.StartsWith("If true: "))
+                else if (line.Contains("If true: "))
                 {
                     ifTrueMonkey = Int32.Parse(opReg.Match(line).Value);
                 }
-                else if (line.StartsWith("If false: "))
+                else if (line.Contains("If false: "))
                 {
                     ifFalseMonkey = Int32.Parse(opReg.Match(line).Value);
                 }
@@ -82,7 +70,7 @@ namespace AdventOfCode2022.Puzzles
 
             if (items != null)
             {
-                var monkey = new Monkey(op, operand, divisor, ifTrueMonkey, ifFalseMonkey);
+                var monkey = new Monkey(op, divisor, ifTrueMonkey, ifFalseMonkey);
                 foreach (long item in items)
                 {
                     monkey.Items.Enqueue(item);
@@ -109,17 +97,23 @@ namespace AdventOfCode2022.Puzzles
                 }
 
                 Console.WriteLine();
+                // Console.ReadLine();
             }
+
+            List<int> sorted = monkeys.Select(m => m.InspectCount).OrderByDescending(i => i).ToList();
+            int monkeyBusiness = sorted[0] * sorted[1];
+            Console.WriteLine($"Monkey business = {monkeyBusiness}.");
         }
     }
 
     internal class Monkey
     {
-        public Monkey(string op, int operand,  int divisor, int ifTrue, int ifFalse)
+        private static Regex reg = new Regex(@"^(.+) ([\+\*]) (.+)$", RegexOptions.Compiled);
+
+        public Monkey(string op, int divisor, int ifTrue, int ifFalse)
         {
             this.Items = new Queue<long>();
             this.Operation = op;
-            this.Operand = operand;
             this.Divisor = divisor;
             this.IfTrueMonkey = ifTrue;
             this.IfFalseMonkey = ifFalse;
@@ -129,30 +123,47 @@ namespace AdventOfCode2022.Puzzles
 
         public string Operation { get; private set; }
 
-        public int Operand { get; private set; }
-
         public int Divisor { get; private set; }
 
         public int IfTrueMonkey { get; private set; }
 
         public int IfFalseMonkey { get; private set; }
 
+        public int InspectCount { get; private set; }
+
         public (long, int) Process()
         {
             long item = this.Items.Dequeue();
 
-            switch (this.Operation)
+            this.InspectCount++;
+
+            Match match = reg.Match(this.Operation);
+
+            long left = -1, right = -1;
+            if (!Int64.TryParse(match.Groups[1].Value, out left))
+            {
+                // We assume op is "old"
+                left = item;
+            }
+
+            if (!Int64.TryParse(match.Groups[3].Value, out right))
+            {
+                // We assume op is "old"
+                right = item;
+            }
+
+            switch (match.Groups[2].Value)
             {
                 case "+":
-                    item += this.Operand;
+                    item = left + right;
                     break;
 
                 case "*":
-                    item *= this.Operand;
+                    item = left * right;
                     break;
 
                 default:
-                    throw new Exception($"Unexpeced operand {this.Operand}.");
+                    throw new Exception($"Unexpeced operand {match.Groups[2].Value}.");
             }
 
             item /= 3;
