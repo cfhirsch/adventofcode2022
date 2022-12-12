@@ -3,9 +3,10 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode2022.Puzzles
 {
-    /* The solution to part two has something to do with the Chinese Remainder Theorem (CRT)
+    /* I got the solution to part two after thinking of the Chinese Remainder Theorem (CRT)
      * https://en.wikipedia.org/wiki/Chinese_remainder_theorem.
-     * My undestanding is really vague here, but consider n monkeys, where monkey i has divisor d_i
+     * My undestanding is really vague here (and not 100% sure reasoning is correct, 
+     * but consider n monkeys, where monkey i has divisor d_i
      * for 1 <= i <= n. Note that each divisor is a prime, which is critical for the CRT to apply. 
      * For a given item with worry level w, we have the following system of equations
      * (where "=" means "is equivalent to"):
