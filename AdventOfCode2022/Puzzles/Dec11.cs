@@ -3,9 +3,29 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode2022.Puzzles
 {
-    /* The solution to part two has something to do with the Chinese Remainder Theorem
+    /* The solution to part two has something to do with the Chinese Remainder Theorem (CRT)
      * https://en.wikipedia.org/wiki/Chinese_remainder_theorem.
-     * I'm not sure why.
+     * My undestanding is really vague here, but consider n monkeys, where monkey i has divisor d_i
+     * for 1 <= i <= n. Note that each divisor is a prime, which is critical for the CRT to apply. 
+     * For a given item with worry level w, we have the following system of equations
+     * (where "=" means "is equivalent to"):
+     * 
+     * w = a_1 mod d_1
+     * w = a_2 mod d_2
+     * ...
+     * w = a_n mod d_n
+     * 
+     * For some integers a_1, a_2, ... , a_n.
+     * 
+     * The Chinese Remainder Theorem tells us that if w' is any other integer that satifies the above 
+     * system of equations, then w = w' mod N, where N = d_1 * d_2 * ... * d_n.
+     * So after we update the worry level of an item based on a monkey's operation to w, we can
+     * update w to w % N to keep the numbers manageable. That is, we update worry levels using 
+     * modulo N arithmetic.
+     * 
+     * What I'm not so clear on here is - does the CRT explicitly imply that, if w is a solution to
+     * the above system of equations, and w' = w mod N, then w' is also a solution. All I really know
+     * for sure is that this approach generated the correct answer for parts one and two.
      */
     internal static class Dec11
     {
