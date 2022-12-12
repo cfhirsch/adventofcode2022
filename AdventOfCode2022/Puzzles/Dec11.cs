@@ -1,16 +1,25 @@
 ﻿using AdventOfCode2022.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AdventOfCode2022.Puzzles
 {
+    /* The solution to part two has something to do with the Chinese Remainder Theorem
+     * https://en.wikipedia.org/wiki/Chinese_remainder_theorem.
+     * I'm not sure why.
+     */
     internal static class Dec11
     {
         public static void SolvePartOne()
+        {
+            Solve(isPartTwo: false);
+        }
+
+        public static void SolvePartTwo()
+        {
+            Solve(isPartTwo: true);
+        }
+
+        public static void Solve(bool isPartTwo)
         {
             var opReg = new Regex(@"\d+", RegexOptions.Compiled);
 
@@ -20,13 +29,14 @@ namespace AdventOfCode2022.Puzzles
             int divisor = -1;
             int ifTrueMonkey = -1, ifFalseMonkey = -1;
             var monkeys = new List<Monkey>();
+            long N = 1;
             foreach (string line in PuzzleReader.ReadLines(11))
             {
                 if (line.StartsWith("Monkey"))
                 {
                     if (items != null)
                     {
-                        var monkey = new Monkey(op, divisor, ifTrueMonkey, ifFalseMonkey);
+                        var monkey = new Monkey(op, divisor, ifTrueMonkey, ifFalseMonkey, isPartTwo);
                         foreach (long item in items)
                         {
                             monkey.Items.Enqueue(item);
@@ -57,6 +67,7 @@ namespace AdventOfCode2022.Puzzles
                 else if (line.Contains("Test: "))
                 {
                     divisor = Int32.Parse(opReg.Match(line).Value);
+                    N *= divisor;
                 }
                 else if (line.Contains("If true: "))
                 {
@@ -70,7 +81,7 @@ namespace AdventOfCode2022.Puzzles
 
             if (items != null)
             {
-                var monkey = new Monkey(op, divisor, ifTrueMonkey, ifFalseMonkey);
+                var monkey = new Monkey(op, divisor, ifTrueMonkey, ifFalseMonkey, isPartTwo);
                 foreach (long item in items)
                 {
                     monkey.Items.Enqueue(item);
@@ -79,7 +90,13 @@ namespace AdventOfCode2022.Puzzles
                 monkeys.Add(monkey);
             }
 
-            for (int i = 1; i <= 20; i++)
+            foreach (Monkey monkey in monkeys)
+            {
+                monkey.N = N;
+            }
+
+            int numRounds = isPartTwo ? 10000 : 20;
+            for (int i = 1; i <= numRounds; i++)
             {
                 foreach (Monkey monkey in monkeys)
                 {
@@ -90,18 +107,18 @@ namespace AdventOfCode2022.Puzzles
                     }
                 }
 
-                Console.WriteLine($"Round {i}");
+                /*Console.WriteLine($"Round {i}");
                 for (int j = 0; j < monkeys.Count; j++)
                 {
                     Console.WriteLine($"Monkey {j}: {monkeys[j]}");
                 }
 
-                Console.WriteLine();
-                // Console.ReadLine();
-            }
+                Console.WriteLine();*/
+    // Console.ReadLine();
+}
 
-            List<int> sorted = monkeys.Select(m => m.InspectCount).OrderByDescending(i => i).ToList();
-            int monkeyBusiness = sorted[0] * sorted[1];
+List<long> sorted = monkeys.Select(m => m.InspectCount).OrderByDescending(i => i).ToList();
+            long monkeyBusiness = sorted[0] * sorted[1];
             Console.WriteLine($"Monkey business = {monkeyBusiness}.");
         }
     }
@@ -110,13 +127,16 @@ namespace AdventOfCode2022.Puzzles
     {
         private static Regex reg = new Regex(@"^(.+) ([\+\*]) (.+)$", RegexOptions.Compiled);
 
-        public Monkey(string op, int divisor, int ifTrue, int ifFalse)
+        private readonly bool isPartTwo;
+        
+        public Monkey(string op, int divisor, int ifTrue, int ifFalse, bool isPartTwo)
         {
             this.Items = new Queue<long>();
             this.Operation = op;
             this.Divisor = divisor;
             this.IfTrueMonkey = ifTrue;
             this.IfFalseMonkey = ifFalse;
+            this.isPartTwo = isPartTwo;
         }
 
         public Queue<long> Items { get; private set; }
@@ -129,7 +149,9 @@ namespace AdventOfCode2022.Puzzles
 
         public int IfFalseMonkey { get; private set; }
 
-        public int InspectCount { get; private set; }
+        public long InspectCount { get; private set; }
+
+        public long N { get; set; }
 
         public (long, int) Process()
         {
@@ -155,18 +177,21 @@ namespace AdventOfCode2022.Puzzles
             switch (match.Groups[2].Value)
             {
                 case "+":
-                    item = left + right;
+                    item = (left + right) % this.N;
                     break;
 
                 case "*":
-                    item = left * right;
+                    item = (left * right) % this.N;
                     break;
 
                 default:
                     throw new Exception($"Unexpeced operand {match.Groups[2].Value}.");
             }
 
-            item /= 3;
+            if (!this.isPartTwo)
+            {
+                item /= 3;
+            }
 
             long remainder;
             Math.DivRem(item, this.Divisor, out remainder);
