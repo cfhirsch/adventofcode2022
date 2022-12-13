@@ -71,3 +71,4 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 12");
 Console.WriteLine("=========================================================================");
 Dec12.SolvePartOne();
+Dec12.SolvePartTwo();

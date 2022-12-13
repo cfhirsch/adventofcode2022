@@ -7,13 +7,26 @@ namespace AdventOfCode2022.Puzzles
     {
         public static void SolvePartOne()
         {
+            Solve(isPartTwo: false);
+        }
+
+        public static void SolvePartTwo()
+        {
+            Solve(isPartTwo: true);
+        }
+
+        public static void Solve(bool isPartTwo)
+        {
             List<string> lines = PuzzleReader.ReadLines(12).ToList();
 
             int maxY = lines.Count;
             int maxX = lines[0].Length;
 
             var grid = new char[maxY, maxX];
-            Point start = new Point(-1, -1);
+
+            var startingPoints = new List<Point>();
+            int minDist = Int32.MaxValue;
+
             Point destination = new Point(-1, -1);
             for (int y = 0; y < maxY; y++)
             {
@@ -23,83 +36,94 @@ namespace AdventOfCode2022.Puzzles
 
                     if (grid[y, x] == 'S')
                     {
-                        start = new Point(x, y);
+                        startingPoints.Add(new Point(x, y));
                     }
 
                     if (grid[y, x] == 'E')
                     {
                         destination = new Point(x, y);
                     }
-                }
-            }
 
-            var predecessor = new Dictionary<Point, Point>();
-            var visited = new HashSet<Point>();
-            var queue = new Queue<Point>();
-            visited.Add(start);
-            queue.Enqueue(start);
-
-            var moves = new Dictionary<Point, char>();
-
-            while (queue.Count > 0)
-            {
-                Point current = queue.Dequeue();
-
-                if (current == destination)
-                {
-                    break;
-                }
-
-                foreach (Point neighbor in GetNeighbors(current, grid))
-                {
-                    if (!visited.Contains(neighbor))
+                    if (grid[y, x] == 'a' && isPartTwo)
                     {
-                        visited.Add(neighbor);
-                        predecessor[neighbor] = current;
-
-                        if (neighbor.Y == current.Y - 1)
-                        {
-                            moves[current] = '^';
-                        }
-
-                        if (neighbor.Y == current.Y + 1)
-                        {
-                            moves[current] = 'v';
-                        }
-
-                        if (neighbor.X == current.X - 1)
-                        {
-                            moves[current] = '<';
-                        }
-
-                        if (neighbor.X == current.X + 1)
-                        {
-                            moves[current] = '>';
-                        }
-
-                        queue.Enqueue(neighbor);
-
-                        //Console.Read();
+                        startingPoints.Add(new Point(x, y));
                     }
                 }
             }
 
-            if (!predecessor.ContainsKey(destination))
+            foreach (Point start in startingPoints)
             {
-                Console.WriteLine("Failed to find destination.");
-            }
-            else
-            {
-                Point current = destination;
-                int pathLength = 0;
-                while (predecessor.ContainsKey(current))
+                var predecessor = new Dictionary<Point, Point>();
+                var visited = new HashSet<Point>();
+                var queue = new Queue<Point>();
+                visited.Add(start);
+                queue.Enqueue(start);
+
+                var moves = new Dictionary<Point, char>();
+
+                while (queue.Count > 0)
                 {
-                    current = predecessor[current];
-                    pathLength++;
+                    Point current = queue.Dequeue();
+
+                    if (current == destination)
+                    {
+                        break;
+                    }
+
+                    foreach (Point neighbor in GetNeighbors(current, grid))
+                    {
+                        if (!visited.Contains(neighbor))
+                        {
+                            visited.Add(neighbor);
+                            predecessor[neighbor] = current;
+
+                            if (neighbor.Y == current.Y - 1)
+                            {
+                                moves[current] = '^';
+                            }
+
+                            if (neighbor.Y == current.Y + 1)
+                            {
+                                moves[current] = 'v';
+                            }
+
+                            if (neighbor.X == current.X - 1)
+                            {
+                                moves[current] = '<';
+                            }
+
+                            if (neighbor.X == current.X + 1)
+                            {
+                                moves[current] = '>';
+                            }
+
+                            queue.Enqueue(neighbor);
+                        }
+                    }
                 }
 
-                Console.WriteLine($"Path length = {pathLength}");
+                if (!predecessor.ContainsKey(destination))
+                {
+                    Console.WriteLine("Failed to find destination.");
+                }
+                else
+                {
+                    Point current = destination;
+                    int pathLength = 0;
+                    while (predecessor.ContainsKey(current))
+                    {
+                        current = predecessor[current];
+                        pathLength++;
+                    }
+
+                    if (pathLength < minDist)
+                    {
+                        minDist = pathLength;
+                    }
+                }
             }
+
+            Console.WriteLine($"Path length = {minDist}");
         }
 
         private static IEnumerable<Point> GetNeighbors(Point current, char[,] grid)
