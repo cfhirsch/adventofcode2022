@@ -102,6 +102,7 @@ namespace AdventOfCode2022.Puzzles
 
                         Console.WriteLine($"- Left side ran out of items, so inputs are in the right order");
                     }
+
                     return CompareResult.InOrder;
                 }
 
@@ -116,6 +117,7 @@ namespace AdventOfCode2022.Puzzles
 
                         Console.WriteLine($"- Right side ran out of items, so inputs are NOT in the right order");
                     }
+
                     return CompareResult.OutOfOrder;
                 }
 
