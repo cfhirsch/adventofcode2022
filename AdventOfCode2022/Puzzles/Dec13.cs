@@ -285,7 +285,7 @@ namespace AdventOfCode2022.Puzzles
                 CompareResult result = IsInOrder(lines[j], pivot, false, 0);
                 if (result == CompareResult.Inconclusive)
                 {
-                    throw new Exception("Did not get conclusive comparison");
+                    throw new Exception("Did not get conclusive comparison.");
                 }
 
                 if (IsInOrder(lines[j], pivot, false, 0) == CompareResult.InOrder)
