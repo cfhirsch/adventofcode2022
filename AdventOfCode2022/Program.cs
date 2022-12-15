@@ -71,10 +71,15 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 12");
 Console.WriteLine("=========================================================================");
 Dec12.SolvePartOne();
-Dec12.SolvePartTwo();*/
+Dec12.SolvePartTwo();
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 13");
 Console.WriteLine("=========================================================================");
 Dec13.SolvePartOne(diagnostic: false);
-Dec13.SolvePartTwo();
+Dec13.SolvePartTwo();*/
+
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 14");
+Console.WriteLine("=========================================================================");
+Dec14.SolvePartOne();

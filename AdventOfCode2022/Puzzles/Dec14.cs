@@ -16,9 +16,11 @@ namespace AdventOfCode2022.Puzzles
                 var path = new Path();
                 foreach (string linePart in lineParts)
                 {
-                    string[] coords = line.Split(",", StringSplitOptions.RemoveEmptyEntries);
+                    string[] coords = linePart.Split(",", StringSplitOptions.RemoveEmptyEntries);
                     path.Points.Add(new Point(Int32.Parse(coords[0]), Int32.Parse(coords[1])));
                 }
+
+                paths.Add(path);
             }
 
             int minX = paths.Select(p => p.Points.Min(x => x.X)).Min();
@@ -65,10 +67,19 @@ namespace AdventOfCode2022.Puzzles
                     if (current.Y > maxY)
                     {
                         fellToAbyss = true;
+                        break;
                     }
+
+                    minX = Math.Min(minX, current.X);
+                    maxX = Math.Max(maxX, current.X);
+                    minY = Math.Min(minY, current.Y);
+                    maxY = Math.Max(maxY, current.Y);
                 }
 
-                Draw(minX, maxX, minY, maxY, paths, sandGrains);
+                Console.WriteLine($"{sandGrains.Count} grains of sand.");
+
+                //Draw(minX, maxX, minY, maxY, paths, sandGrains);
+                //Console.Read();
             }
 
             Console.WriteLine($"{sandGrains.Count} grains of sand came to rest.");
@@ -120,7 +131,7 @@ namespace AdventOfCode2022.Puzzles
 
         public bool Intersects(Point pt)
         {
-            return Enumerable.Range(0, this.Points.Count - 1).Any(i => Intersects(pt, this.Points[i], this.Points[i + 1]);
+            return Enumerable.Range(0, this.Points.Count - 1).Any(i => Intersects(pt, this.Points[i], this.Points[i + 1]));
         }
 
         private static bool Intersects(Point p1, Point p2, Point p3)
@@ -130,14 +141,13 @@ namespace AdventOfCode2022.Puzzles
                 int minY = Math.Min(p2.Y, p3.Y);
                 int maxY = Math.Max(p2.Y, p3.Y);
 
-                return p1.Y >= minY && p1.Y <= maxY;
-                ;
+                return p1.X == p2.X && p1.Y >= minY && p1.Y <= maxY;
             }
             else if (p2.Y == p3.Y)
             {
                 int minX = Math.Min(p2.X, p3.X);
                 int maxX = Math.Max(p2.X, p3.X);
-                return p1.X >= minX && p1.X >= maxX;
+                return p1.Y == p2.Y && p1.X >= minX && p1.X <= maxX;
             }
             else
             {
