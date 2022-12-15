@@ -76,7 +76,7 @@ namespace AdventOfCode2022.Puzzles
                     maxY = Math.Max(maxY, current.Y);
                 }
 
-                Console.WriteLine($"{sandGrains.Count} grains of sand.");
+                //Console.WriteLine($"{sandGrains.Count} grains of sand.");
 
                 //Draw(minX, maxX, minY, maxY, paths, sandGrains);
                 //Console.Read();
@@ -85,7 +85,86 @@ namespace AdventOfCode2022.Puzzles
             Console.WriteLine($"{sandGrains.Count} grains of sand came to rest.");
         }
 
-        private static void Draw(int minX, int maxX, int minY, int maxY, List<Path> paths, HashSet<Point> sandGrains)
+        public static void SolvePartTwo()
+        {
+            var sandGrains = new HashSet<Point>();
+            var paths = new List<Path>();
+
+            foreach (string line in PuzzleReader.ReadLines(14))
+            {
+                string[] lineParts = line.Split(" -> ", StringSplitOptions.RemoveEmptyEntries);
+                var path = new Path();
+                foreach (string linePart in lineParts)
+                {
+                    string[] coords = linePart.Split(",", StringSplitOptions.RemoveEmptyEntries);
+                    path.Points.Add(new Point(Int32.Parse(coords[0]), Int32.Parse(coords[1])));
+                }
+
+                paths.Add(path);
+            }
+
+            int minX = paths.Select(p => p.Points.Min(x => x.X)).Min();
+            int maxX = paths.Select(p => p.Points.Max(x => x.X)).Max();
+
+            int minY = 0;
+            int maxY = paths.Select(p => p.Points.Max(x => x.Y)).Max() + 2;
+
+            var start = new Point(500, 0);
+            
+            while (!sandGrains.Contains(start))
+            {
+                var current = start;
+                while (true)
+                {
+                    var down = new Point(current.X, current.Y + 1);
+                    if (!Intersects(sandGrains, paths, down, maxY))
+                    {
+                        current = down;
+                    }
+                    else
+                    {
+                        var downToLeft = new Point(current.X - 1, current.Y + 1);
+                        if (!Intersects(sandGrains, paths, downToLeft, maxY))
+                        {
+                            current = downToLeft;
+                        }
+                        else
+                        {
+                            var downToRight = new Point(current.X + 1, current.Y + 1);
+                            if (!Intersects(sandGrains, paths, downToRight, maxY))
+                            {
+                                current = downToRight;
+                            }
+                            else
+                            {
+                                // Sand grain can't move any further.
+                                sandGrains.Add(current);
+                                break;
+                            }
+                        }
+                    }
+
+                    minX = Math.Min(minX, current.X);
+                    maxX = Math.Max(maxX, current.X);
+                    minY = Math.Min(minY, current.Y);
+                }
+
+                //Console.WriteLine($"{sandGrains.Count} grains of sand.");
+                int count = sandGrains.Count;
+                if ((count % 10000) == 0)
+                {
+                    Draw(minX, maxX, minY, maxY, paths, sandGrains, drawMaxY: true);
+                    Console.Read();
+                }
+
+                //Console.SetCursorPosition(0, 0);
+                //Console.WriteLine($"{sandGrains.Count} grains of sand.");
+            }
+
+            Console.WriteLine($"{sandGrains.Count} grains of sand came to rest.");
+        }
+
+        private static void Draw(int minX, int maxX, int minY, int maxY, List<Path> paths, HashSet<Point> sandGrains, bool drawMaxY = false)
         {
             for (int y = minY; y <= maxY; y++)
             {
@@ -96,7 +175,7 @@ namespace AdventOfCode2022.Puzzles
                     {
                         Console.Write("+");
                     }
-                    else if (paths.Any(p => p.Intersects(pt)))
+                    else if (y == maxY || paths.Any(p => p.Intersects(pt)))
                     {
                         Console.Write("#");
                     }
@@ -112,6 +191,11 @@ namespace AdventOfCode2022.Puzzles
 
                 Console.WriteLine();
             }
+        }
+
+        private static bool Intersects(HashSet<Point> sandGrains, List<Path> paths, Point pt, int maxY)
+        {
+            return (pt.Y == maxY) || sandGrains.Contains(pt) || paths.Any(p => p.Intersects(pt));
         }
 
         private static bool Intersects(HashSet<Point> sandGrains, List<Path> paths, Point pt)
