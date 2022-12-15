@@ -79,8 +79,8 @@ Console.WriteLine("=============================================================
 Dec13.SolvePartOne(diagnostic: false);
 Dec13.SolvePartTwo();*/
 
-/*Console.WriteLine("=========================================================================");
+Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 14");
 Console.WriteLine("=========================================================================");
-Dec14.SolvePartOne();*/
+Dec14.SolvePartOne();
 Dec14.SolvePartTwo();

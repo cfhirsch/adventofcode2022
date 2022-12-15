@@ -148,17 +148,6 @@ namespace AdventOfCode2022.Puzzles
                     maxX = Math.Max(maxX, current.X);
                     minY = Math.Min(minY, current.Y);
                 }
-
-                //Console.WriteLine($"{sandGrains.Count} grains of sand.");
-                int count = sandGrains.Count;
-                if ((count % 10000) == 0)
-                {
-                    Draw(minX, maxX, minY, maxY, paths, sandGrains, drawMaxY: true);
-                    Console.Read();
-                }
-
-                //Console.SetCursorPosition(0, 0);
-                //Console.WriteLine($"{sandGrains.Count} grains of sand.");
             }
 
             Console.WriteLine($"{sandGrains.Count} grains of sand came to rest.");
