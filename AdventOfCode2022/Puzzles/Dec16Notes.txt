@@ -1,0 +1,50 @@
+1. Formulate the problem recursively.
+
+a. Specification
+
+Given: A graph of valves, some (possibly none) open, some (possibly all) closed, each with a given flow rate per minute, with connections to each other, with x minutes left. With the following moves:
+(1) open current valve if it is closed (1 minute)
+(2) move to a neighboring valve (1 minute)
+
+Find: A collection of moves that maximizes the total flow.
+
+b. Solution. 
+
+For a fixed graph, let T(current, closed, min) be the optimal solution to an instance of the problem where 
+
+current is the valve that we are currently located at
+closed is the set of valves that haven't been opened yet
+min is the number of minutes remaining
+
+We need to recursively define T. First off, 
+
+T(current, empty, min) = 0 for all current and min
+
+T(current, closed, min) = 0 if min < 2 (even if current is open, there's no enough time to open it and get any flow)
+
+If min < 3, there isn't enough time to move to a neighboring valve to open it and get some flow, so
+T(current, closed, min) = current.FlowRate * (min - 1) if current is closed
+                          0 otherwise
+                          
+if current is closed, then
+T(current, closed, min) = max(T(neighbor, closed, min - 1)) over all neighbors of current
+
+if current is open, then
+T(current, closed, min) = max(current.FlowRate * (min - 1) + T(neighbor, closed union {current}, min - 2), T(neighbor, closed, min - 1)) over all neighbors of current
+
+2. Build your solutions to the recurrence from the bottom up
+a. identify the subproblems
+Given initial input, current, closed and min, a recursive algorithm would potentially call itself for any neighbor of current, 
+with closed and closed union current, and min any number >= 0
+
+b. Choose a memoization data structure.
+A dictionary, each key is a tuple of (Valve, HashSet<Valve>, int), the values are the maximal flow for the subproblem.
+
+c. Identify dependencies
+Except for base cases, a subproblem (current, closed, min) depends on (neighbor, closed, min - 1) for all neighbors of current if current is closed.
+If current is open the subproblem depends on (neighbor, closed union {current}, min - 2) and (neighbor, closed, min - 1) over all neighbors of current.
+
+d. Find a good evaluation order.
+                         
+                          
+                          
