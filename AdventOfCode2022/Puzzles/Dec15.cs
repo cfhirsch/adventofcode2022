@@ -135,6 +135,11 @@ namespace AdventOfCode2022.Puzzles
             return this.ranges.Any(r => r.Lower <= x && x <= r.Upper);
         }
 
+        /* If there are any ranges that contain x, update them so that they don't include x.
+         * If x is an endpoint, increment or decrement as needed, remove range if it is now empty.
+         * Otherwise remove relevant range and replace with two ranges, one with elements in 
+         * original range that are less than x, the other with elements in original range
+         * that are greater than x */
         public void Remove(int x)
         {
             Range range = this.ranges.FirstOrDefault(r => r.Lower <= x && r.Upper <= x);
