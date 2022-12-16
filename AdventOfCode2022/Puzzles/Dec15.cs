@@ -1,6 +1,7 @@
 ﻿using AdventOfCode2022.Utilities;
 using System.Drawing;
 using System.Text.RegularExpressions;
+using System.Xml.Schema;
 
 namespace AdventOfCode2022.Puzzles
 {
@@ -22,24 +23,32 @@ namespace AdventOfCode2022.Puzzles
         {   
             var sensors = GetSensors();
 
-            int minX = Math.Max(0, sensors.Min(s => s.NearestBeacon.X));
-            int maxX = sensors.Max(s => s.NearestBeacon.X);
+            int minX = Math.Max(0, sensors.Min(s => s.Location.X));
+            int maxX = sensors.Max(s => s.Location.X);
 
-            int minY = Math.Max(0, sensors.Min(s => s.NearestBeacon.Y));
-            int maxY = sensors.Max(s => s.NearestBeacon.Y);
+            int minY = Math.Max(0, sensors.Min(s => s.Location.Y));
+            int maxY = sensors.Max(s => s.Location.Y);
 
             HashSet<Point> beacons = sensors.Select(s => s.NearestBeacon).ToHashSet();
 
             for (int y = minY; y <= maxY; y++)
             {
+                // Console.SetCursorPosition(0, 0);
+                // Console.WriteLine($"minY = {minY}, y = {y}, maxY = {maxY}");
                 var ranges = GetRanges(sensors, y);
+
+                if (ranges.RangeList.Count == 1 && ranges.RangeList[0].Lower <= minX && maxX <= ranges.RangeList[0].Upper)
+                {
+                    continue;
+                }
+
                 var candidates = Enumerable.Range(minX, maxX - minX + 1).Where(x => !beacons.Contains(new Point(x, y)) && !ranges.In(x));
 
                 if (candidates.Any())
                 {
                     int x = candidates.First();
 
-                    int frequency = x * 4000000 + y;
+                    long frequency = (long)x * 4000000 + y;
                     Console.WriteLine($"frequency = {frequency}.");
                     break;
                 }
@@ -95,6 +104,8 @@ namespace AdventOfCode2022.Puzzles
             this.Y = y;
         }
 
+        public List<Range> RangeList {  get { return this.ranges; } }
+
         public int Y { get; set; }
 
         public void AddRange(Range range)
@@ -108,7 +119,8 @@ namespace AdventOfCode2022.Puzzles
 
                 range = Merge(range, range2);
 
-                intersected = this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper)).ToList();
+                intersected = this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper) ||
+                                                             (r.Lower >= range.Lower && r.Lower <= range.Upper) || (r.Upper >= range.Lower && r.Upper <= range.Upper)).ToList();
             }
 
             this.ranges.Add(range);
