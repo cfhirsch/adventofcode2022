@@ -131,12 +131,6 @@ namespace AdventOfCode2022.Puzzles
             return this.ranges.Any(r => r.Lower <= x && x <= r.Upper);
         }
 
-        private IEnumerable<Range> Intersected(Range range)
-        {
-            return this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper) ||
-                                                             (r.Lower >= range.Lower && r.Lower <= range.Upper) || (r.Upper >= range.Lower && r.Upper <= range.Upper));
-        }
-
         public void Remove(int x)
         {
             Range range = this.ranges.FirstOrDefault(r => r.Lower <= x && r.Upper <= x);
@@ -169,6 +163,12 @@ namespace AdventOfCode2022.Puzzles
                     var range2 = new Range { Lower = x + 1, Upper = range.Upper };
                     this.ranges.AddRange(new[] { range1, range2 });
                 }
+            }
+
+            private IEnumerable<Range> Intersected(Range range)
+            {
+                return this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper) ||
+                                                                 (r.Lower >= range.Lower && r.Lower <= range.Upper) || (r.Upper >= range.Lower && r.Upper <= range.Upper));
             }
         }
 
