@@ -7,10 +7,61 @@ namespace AdventOfCode2022.Puzzles
     internal static class Dec15
     {
         public static void SolvePartOne()
+        {  
+            int y = 2000000;
+            var sensors = GetSensors();
+
+            var ranges = GetRanges(sensors, y);
+
+            int count = ranges.GetCount();
+
+            Console.WriteLine($"{count} points cannot contain a beacon.");
+        }
+
+        public static void SolvePartTwo()
+        {   
+            var sensors = GetSensors();
+
+            int minX = Math.Max(0, sensors.Min(s => s.NearestBeacon.X));
+            int maxX = sensors.Max(s => s.NearestBeacon.X);
+
+            int minY = Math.Max(0, sensors.Min(s => s.NearestBeacon.Y));
+            int maxY = sensors.Max(s => s.NearestBeacon.Y);
+
+            HashSet<Point> beacons = sensors.Select(s => s.NearestBeacon).ToHashSet();
+
+            for (int y = minY; y <= maxY; y++)
+            {
+                var ranges = GetRanges(sensors, y);
+                var candidates = Enumerable.Range(minX, maxX - minX + 1).Where(x => !beacons.Contains(new Point(x, y)) && !ranges.In(x));
+
+                if (candidates.Any())
+                {
+                    int x = candidates.First();
+
+                    int frequency = x * 4000000 + y;
+                    Console.WriteLine($"frequency = {frequency}.");
+                    break;
+                }
+            }
+
+        }
+
+        private static Ranges GetRanges(List<Sensor> sensors, int y)
+        {
+            var ranges = new Ranges(y);
+            foreach (Sensor sensor in sensors)
+            {
+                sensor.UpdateRanges(ranges);
+            }
+
+            return ranges;
+        }
+
+        private static List<Sensor> GetSensors()
         {
             var reg = new Regex(@"Sensor at x=(-?\d+), y=(-?\d+): closest beacon is at x=(-?\d+), y=(-?\d+)");
 
-            int y = 2000000;
             var sensors = new List<Sensor>();
 
             foreach (string line in PuzzleReader.ReadLines(15))
@@ -23,15 +74,7 @@ namespace AdventOfCode2022.Puzzles
                 sensors.Add(new Sensor(sensorLocation, beaconLocation));
             }
 
-            var ranges = new Ranges(y);
-            foreach (Sensor sensor in sensors)
-            {
-                sensor.UpdateRanges(ranges);
-            }
-
-            int count = ranges.GetCount();
-
-            Console.WriteLine($"{count} points cannot contain a beacon.");
+            return sensors;
         }
     }
 
@@ -74,6 +117,11 @@ namespace AdventOfCode2022.Puzzles
         public int GetCount()
         {
             return this.ranges.Select(r => r.Upper - r.Lower + 1).Sum();
+        }
+
+        public bool In(int x)
+        {
+            return this.ranges.Any(r => r.Lower <= x && x <= r.Upper);
         }
 
         public void Remove(int x)

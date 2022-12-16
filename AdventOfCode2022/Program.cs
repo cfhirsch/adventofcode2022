@@ -89,3 +89,4 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 15");
 Console.WriteLine("=========================================================================");
 Dec15.SolvePartOne();
+Dec15.SolvePartTwo();
