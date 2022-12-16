@@ -1,7 +1,6 @@
 ﻿using AdventOfCode2022.Utilities;
 using System.Drawing;
 using System.Text.RegularExpressions;
-using System.Xml.Schema;
 
 namespace AdventOfCode2022.Puzzles
 {
@@ -33,8 +32,6 @@ namespace AdventOfCode2022.Puzzles
 
             for (int y = minY; y <= maxY; y++)
             {
-                // Console.SetCursorPosition(0, 0);
-                // Console.WriteLine($"minY = {minY}, y = {y}, maxY = {maxY}");
                 var ranges = GetRanges(sensors, y);
 
                 if (ranges.RangeList.Count == 1 && ranges.RangeList[0].Lower <= minX && maxX <= ranges.RangeList[0].Upper)
@@ -110,8 +107,7 @@ namespace AdventOfCode2022.Puzzles
 
         public void AddRange(Range range)
         {
-            List<Range> intersected = this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper) ||
-                                                             (r.Lower >= range.Lower && r.Lower <= range.Upper) || (r.Upper >= range.Lower && r.Upper <= range.Upper)).ToList();
+            IEnumerable<Range> intersected = this.Intersected(range);
             while (intersected.Any())
             {
                 Range range2 = intersected.First();
@@ -119,8 +115,7 @@ namespace AdventOfCode2022.Puzzles
 
                 range = Merge(range, range2);
 
-                intersected = this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper) ||
-                                                             (r.Lower >= range.Lower && r.Lower <= range.Upper) || (r.Upper >= range.Lower && r.Upper <= range.Upper)).ToList();
+                intersected = this.Intersected(range);
             }
 
             this.ranges.Add(range);
@@ -134,6 +129,12 @@ namespace AdventOfCode2022.Puzzles
         public bool In(int x)
         {
             return this.ranges.Any(r => r.Lower <= x && x <= r.Upper);
+        }
+
+        private IEnumerable<Range> Intersected(Range range)
+        {
+            return this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper) ||
+                                                             (r.Lower >= range.Lower && r.Lower <= range.Upper) || (r.Upper >= range.Lower && r.Upper <= range.Upper));
         }
 
         public void Remove(int x)
