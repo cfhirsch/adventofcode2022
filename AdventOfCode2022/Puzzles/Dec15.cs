@@ -107,6 +107,10 @@ namespace AdventOfCode2022.Puzzles
 
         public void AddRange(Range range)
         {
+            // Find any existing ranges that intersect the new range.
+            // Remove these ranges and merge with the new one.
+            // The goal is that this.ranges always represnts a list of 
+            // pairwise disjoint intervals.
             IEnumerable<Range> intersected = this.Intersected(range);
             while (intersected.Any())
             {
@@ -164,17 +168,17 @@ namespace AdventOfCode2022.Puzzles
                     this.ranges.AddRange(new[] { range1, range2 });
                 }
             }
-
-            private IEnumerable<Range> Intersected(Range range)
-            {
-                return this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper) ||
-                                                                 (r.Lower >= range.Lower && r.Lower <= range.Upper) || (r.Upper >= range.Lower && r.Upper <= range.Upper));
-            }
         }
 
         public static Range Merge(Range range1, Range range2)
         {
             return new Range { Lower = Math.Min(range1.Lower, range2.Lower), Upper = Math.Max(range1.Upper, range2.Upper) };
+        }
+
+        private IEnumerable<Range> Intersected(Range range)
+        {
+            return this.ranges.Where(r => (range.Lower >= r.Lower && range.Lower <= r.Upper) || (range.Upper >= r.Lower && range.Upper <= r.Upper) ||
+                                                             (r.Lower >= range.Lower && r.Lower <= range.Upper) || (r.Upper >= range.Lower && r.Upper <= range.Upper));
         }
     }
 
