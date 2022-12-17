@@ -1,6 +1,7 @@
 ﻿using AdventOfCode2022.Utilities;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace AdventOfCode2022.Puzzles
@@ -91,25 +92,36 @@ namespace AdventOfCode2022.Puzzles
 
             Valve start = valveDict["AA"];
 
+            HashSet<Valve> test = valveDict.Values.Take(5).ToHashSet();
+            foreach (HashSet<Valve> subset in GetSubsets(test, 2))
+            {
+                Console.WriteLine(string.Join(",", subset.Select(s => s.Label).ToArray()));
+            }
+
+            //Lets figure out which valves are reachble in 26 minutes - does that reduce the search space?
+           
             var openValves = valveDict.Values.Where(v => !closedValves.Contains(v)).ToHashSet();
             // Look at all possible ways of dividing unopened valves between me and elephant.
 
             int maxFlow = 0;
             int count = 0;
-            var visited = new HashSet<HashSet<Valve>>();
+
+            var visited = new HashSet<string>();
             foreach (HashSet<Valve> subset in GetSubsets(openValves, openValves.Count / 2))
             {
                 HashSet<Valve> myClosedValves = closedValves.Union(subset).ToHashSet();
                 HashSet<Valve> elephantsClosedValves = closedValves.Union(openValves.Except(subset)).ToHashSet();
 
-                if (visited.Contains(myClosedValves))
+                string myKey = GetKey(myClosedValves);
+                string elephantKey = GetKey(elephantsClosedValves);
+                if (visited.Contains(myKey) ||
+                    visited.Contains(elephantKey))
                 {
-                   // Console.WriteLine("Already visited.");
                     continue;
                 }
 
-                visited.Add(myClosedValves);
-                visited.Add(elephantsClosedValves);
+                visited.Add(myKey);
+                visited.Add(elephantKey);
 
                 count++;
 
@@ -154,6 +166,11 @@ namespace AdventOfCode2022.Puzzles
 
             Console.SetCursorPosition(0, 10);
             Console.WriteLine($"Maximal flow is {maxFlow}.");
+        }
+
+        private static string GetKey(HashSet<Valve> set)
+        {
+            return string.Join(",", set.Select(v => v.Label).OrderBy(v => v).ToArray());
         }
 
         private static int GetMaxFlow(
@@ -308,12 +325,19 @@ namespace AdventOfCode2022.Puzzles
             }
             else
             {
+                var visited = new HashSet<string>();
                 foreach (Valve valve in set)
                 {
                     var withoutValve = set.Except(new[] { valve }).ToHashSet();
                     foreach (HashSet<Valve> subset in GetSubsets(withoutValve, size - 1))
                     {
-                        yield return subset.Union(new[] { valve }).ToHashSet();
+                        HashSet<Valve> newset = subset.Union(new[] { valve }).ToHashSet();
+                        string key = GetKey(newset);
+                        if (!visited.Contains(key))
+                        {
+                            visited.Add(key);
+                            yield return newset;
+                        }
                     }
                 }
             }
