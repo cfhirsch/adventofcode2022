@@ -9,7 +9,7 @@ namespace AdventOfCode2022.Puzzles
         {
             var reg = new Regex(@"Valve ([A-Z][A-Z]) has flow rate=(\d+); tunnels lead to valves ([\w,\s]+)", RegexOptions.Compiled);
             var reg2 = new Regex(@"Valve ([A-Z][A-Z]) has flow rate=(\d+); tunnel leads to valve ([\w,\s]+)", RegexOptions.Compiled);
-            
+
             // Key is current valve, set of neighbors that are open, minutes left.
             var memoized = new Dictionary<(Valve, HashSet<Valve>, int), int>();
             var valveDict = new Dictionary<string, Valve>();
@@ -26,7 +26,7 @@ namespace AdventOfCode2022.Puzzles
                 int flow = Int32.Parse(match.Groups[2].Value);
                 string neighbors = match.Groups[3].Value;
                 List<string> neighborParts = neighbors.Split(", ", StringSplitOptions.RemoveEmptyEntries).ToList();
-                var valve = new Valve(label, flow, neighborParts); 
+                var valve = new Valve(label, flow, neighborParts);
 
                 valveDict.Add(label, valve);
 
@@ -39,62 +39,32 @@ namespace AdventOfCode2022.Puzzles
 
             Dictionary<(Valve, Valve), int> dist = BuildDistDict(valveDict);
 
-            for (int i = 0; i <= 30; i++)
+            Valve start = valveDict["AA"];
+
+            int maxFlow = 0;
+
+            foreach (Valve valve in valveDict.Values)
             {
-                foreach (Valve valve in valveDict.Values)
+                if (closedValves.Contains(valve))
                 {
-                    if (i == 30 && valve.Label != "AA")
-                    {
-                        // For i = 30, we only care about the solution for "AA".
-                        continue;
-                    }
+                    continue;
+                }
 
-                    // Find all non-broken valves that could be opened in time remaining (including current one).
-                    HashSet<Valve> reachable = valveDict.Values.Where(v => !closedValves.Contains(v) && dist[(valve, v)] <= i - 2).ToHashSet();
+                int distance = dist[(start, valve)];
+                int flow = FindMaximalFlow(
+                    memoized,
+                    valveDict,
+                    valve,
+                    closedValves,
+                    dist,
+                    30 - distance);
 
-                    // Now we need to consider every permutation of opened/closed for these reachable valves.
-                    foreach (HashSet<Valve> subset in GetSubsets(reachable))
-                    {
-                        if (i <= 1)
-                        {
-                            memoized[(valve, subset, i)] = 0;
-                        }
-                        else if (i == 2)
-                        {
-                            memoized[(valve, subset, i)] = subset.Contains(valve) ? 0 : valve.FlowRate;
-                        }
-                        else
-                        {
-                            int maxWith = Int32.MinValue;
-                            int maxWithout = Int32.MinValue;
-                            foreach (Valve neighbor in subset)
-                            {
-                                int distance = dist[(valve, neighbor)];
-                                int without = memoized[(neighbor, subset, i - distance)];
-
-                                if (without > maxWithout)
-                                {
-                                    maxWithout = without;
-                                }
-
-                                if (!subset.Contains(valve))
-                                {
-                                    int with = valve.FlowRate * (i - 1) + memoized[(neighbor, subset, i - distance - 1)];
-                                    if (with > maxWith)
-                                    {
-                                        maxWith = with;
-                                    }
-                                }
-                            }
-
-                            memoized[(valve, subset, i)] = Math.Max(maxWith, maxWithout)];
-                        }
-                    }
+                if (flow > maxFlow)
+                {
+                    maxFlow = flow;
                 }
             }
 
-            Valve start = valveDict["AA"];
-            int maxFlow = memoized[(start, closedValves, 30)];
             Console.WriteLine($"Maximal flow is {maxFlow}.");
         }
 
@@ -110,7 +80,7 @@ namespace AdventOfCode2022.Puzzles
                     dict.Add((valve1, valve2), dist);
                 }
             }
-            
+
             foreach (Valve valve in valveDict.Values)
             {
                 foreach (string neighborLabel in valve.Neighbors)
@@ -137,44 +107,15 @@ namespace AdventOfCode2022.Puzzles
             return dict;
         }
 
-        private static IEnumerable<HashSet<Valve>> GetSubsets(HashSet<Valve> valves)
-        {
-            int count = valves.Count;
-            for (int i = 0; i <= count; i++)
-            {
-                foreach (HashSet<Valve> subset in GetSubsets(valves, i))
-                {
-                    yield return subset;
-                }
-            }
-
-        }
-
-        private static IEnumerable<HashSet<Valve>> GetSubsets(HashSet<Valve> valves, int size)
-        {
-            if (size == 0)
-            {
-                yield return new HashSet<Valve>();
-            }
-
-            foreach (Valve valve in valves)
-            {
-                foreach (HashSet<Valve> subsets in GetSubsets(valves.Except(new[] { valve }).ToHashSet(), size - 1))
-                {
-                    yield return subsets.Union(new[] { valve }).ToHashSet();
-                }
-            }
-        }
-
         // We memoize the solution for each combination of:
-        // (1) the valve that we are currently in front of
+        // (1) the valve that we are currently in front of (we assume current valve is open).
         // (2) the set of other valves that haven't been opened yet
         // (3) the number of minutes left
         private static int FindMaximalFlow(
-            Dictionary<(Valve, HashSet<Valve>, int), int> memoized, 
+            Dictionary<(Valve, HashSet<Valve>, int), int> memoized,
             Dictionary<string, Valve> valveDict,
-            Valve currentValve, 
-            HashSet<Valve> openedValves,
+            Valve currentValve,
+            HashSet<Valve> closedValves,
             Dictionary<(Valve, Valve), int> dist,
             int minutesLeft)
         {
@@ -185,38 +126,51 @@ namespace AdventOfCode2022.Puzzles
 
             if (minutesLeft == 2)
             {
-                return openedValves.Contains(currentValve) ? 0 : currentValve.FlowRate;
+                return currentValve.FlowRate;
             }
 
-            int maxScoreWithCurrentValve = Int32.MinValue;
-            int maxScoreWithoutCurrentValve = Int32.MinValue;
-            
-            foreach (Valve valve in valveDict.Values.Where(v => v != currentValve && !openedValves.Contains(v)))
+            int maxScoreWithCurrentValve = 0;
+            int maxScoreWithoutCurrentValve = 0;
+
+            // Find all the remaining unopened valves that could be reached in time 
+            // to usefully open them.
+            IEnumerable<Valve> reachable = valveDict.Values.Where(
+                v => v != currentValve && !closedValves.Contains(v) && dist[(currentValve, v)] < minutesLeft - 1);
+
+            if (!reachable.Any())
+            {
+                return currentValve.FlowRate * (minutesLeft - 1);
+            }
+
+            var closedWith = closedValves.Union(new[] { currentValve }).ToHashSet();
+
+            foreach (Valve valve in reachable)
             {
                 int distance = dist[(currentValve, valve)];
-                if (!memoized.ContainsKey((valve, openedValves, minutesLeft - distance)))
+                if (!memoized.ContainsKey((valve, closedValves, minutesLeft - distance)))
                 {
-                    memoized[(valve, openedValves, minutesLeft - distance)] = FindMaximalFlow(memoized, valveDict, valve, openedValves, dist, minutesLeft - distance);
+                    memoized[(valve, closedValves, minutesLeft - distance)] =
+                        FindMaximalFlow(memoized, valveDict, valve, closedValves, dist, minutesLeft - distance);
                 }
 
-                int scoreWithout = memoized[(valve, openedValves, minutesLeft - distance)];
-                if (scoreWithout > maxScoreWithoutCurrentValve)
+                int maxWithout = memoized[(valve, closedValves, minutesLeft - distance)];
+
+                if (maxWithout > maxScoreWithoutCurrentValve)
                 {
-                    maxScoreWithoutCurrentValve = scoreWithout;
+                    maxScoreWithoutCurrentValve = maxWithout;
                 }
 
-                if (!openedValves.Contains(valve))
+                if (!memoized.ContainsKey((valve, closedWith, minutesLeft - distance - 1)))
                 {
-                    if (!memoized.ContainsKey((valve, openedValves, minutesLeft - distance - 1)))
-                    {
-                        memoized[(valve, openedValves, minutesLeft - distance)] = FindMaximalFlow(memoized, valveDict, valve, openedValves, dist, minutesLeft - distance - 1);
-                    }
+                    memoized[(valve, closedWith, minutesLeft - distance - 1)] =
+                        FindMaximalFlow(memoized, valveDict, valve, closedWith, dist, minutesLeft - distance - 1);
+                }
 
-                    int scoreWith = currentValve.FlowRate * (minutesLeft - 1) + memoized[(valve, openedValves, minutesLeft - distance)];
-                    if (scoreWith > maxScoreWithCurrentValve)
-                    {
-                        maxScoreWithCurrentValve = scoreWith;
-                    }
+                int maxWith = (currentValve.FlowRate * (minutesLeft - 1)) + memoized[(valve, closedWith, minutesLeft - distance - 1)];
+
+                if (maxWith > maxScoreWithCurrentValve)
+                {
+                    maxScoreWithCurrentValve = maxWith;
                 }
             }
 
@@ -226,7 +180,7 @@ namespace AdventOfCode2022.Puzzles
 
     public class Valve
     {
-        public Valve(string label,int flowRate, List<string> neighbors)
+        public Valve(string label, int flowRate, List<string> neighbors)
         {
             this.Label = label;
             this.FlowRate = flowRate;
