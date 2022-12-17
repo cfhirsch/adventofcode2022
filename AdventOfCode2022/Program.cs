@@ -95,3 +95,4 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 16");
 Console.WriteLine("=========================================================================");
 Dec16.SolvePartOne();
+Dec16.SolvePartTwo();
