@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AdventOfCode2022.Utilities;
+using System.Text.RegularExpressions;
 
 namespace AdventOfCode2022.Puzzles
 {
@@ -10,8 +7,25 @@ namespace AdventOfCode2022.Puzzles
     {
         public static void SolvePartOne()
         {
+            var reg = new Regex(@"Valve (\w+) has flow rate=(\d+); tunnels lead to valves (\[w,\s]+)", RegexOptions.Compiled);
+            var memoized = new Dictionary<Tuple<Valve, HashSet<Valve>, int>, int>();
             var valveDict = new Dictionary<string, Valve>();
+            var closedValves = new HashSet<Valve>();
 
+            foreach (string line in PuzzleReader.ReadLines(16))
+            {
+                Match match = reg.Match(line);
+                string label = match.Groups[1].Value;
+                int flow = Int32.Parse(match.Groups[2].Value);
+                string neighbors = match.Groups[3].Value;
+                List<string> neighborParts = neighbors.Split(", ", StringSplitOptions.RemoveEmptyEntries).ToList();
+                var valve = new Valve(flow, neighborParts);
+
+                valveDict.Add(label, valve);
+            }
+
+            Valve currentValve = valveDict["AA"];
+            int maxFlow = FindMaximalFlow(memoized, valveDict, currentValve, closedValves, 30);
         }
 
         // We memoize the solution for each combination of:
@@ -52,7 +66,7 @@ namespace AdventOfCode2022.Puzzles
             int maxWithoutCurrent = Int32.MinValue;
             int maxWithCurrent = Int32.MinValue;
 
-            HashSet<Valve> closedPlusCurrent = closedValves.Union(new[] { currentValve }).ToHashSet();
+            HashSet<Valve> closedMinusCurrent = closedValves.Except(new[] { currentValve }).ToHashSet();
 
             foreach (string neighborLabel in currentValve.Neighbors)
             {
@@ -75,10 +89,10 @@ namespace AdventOfCode2022.Puzzles
                     // Consider solution where we open current valve then move to neighbor.
                     if (isCurrentOpen)
                     {
-                        key = new Tuple<Valve, HashSet<Valve>, int>(neighbor, closedPlusCurrent, minutesLeft - 2);
+                        key = new Tuple<Valve, HashSet<Valve>, int>(neighbor, closedMinusCurrent, minutesLeft - 2);
                         if (!memoized.ContainsKey(key))
                         {
-                            memoized[key] = FindMaximalFlow(memoized, valveDict, neighbor, closedPlusCurrent, minutesLeft - 2);
+                            memoized[key] = FindMaximalFlow(memoized, valveDict, neighbor, closedMinusCurrent, minutesLeft - 2);
                         }
 
                         int withCurrent = memoized[key] + currentValve.FlowRate * (minutesLeft - 1);
