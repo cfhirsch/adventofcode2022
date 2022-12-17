@@ -16,6 +16,8 @@ namespace AdventOfCode2022.Puzzles
             int right = 8;
 
             var points = new HashSet<Point>();
+            int movPos = 0;
+
             for (int i = 0; i < numTiles; i++)
             {
                 int shapePos = i % 5;
@@ -25,7 +27,6 @@ namespace AdventOfCode2022.Puzzles
 
                 Draw(tile, points);
                 bool moved = true;
-                int movPos = 0;
                 while (moved)
                 {
                     char mv = line[movPos];
@@ -57,10 +58,14 @@ namespace AdventOfCode2022.Puzzles
                         Draw(tile, points);
                     }
 
+                    movPos = (movPos + 1) % line.Length;
+
                     //Console.Read();
                 }
 
                 points = points.Union(tile.Points).ToHashSet();
+
+                top = points.Max(p => p.Y);
             }
         }
 
