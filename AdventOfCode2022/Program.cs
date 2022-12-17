@@ -83,10 +83,15 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 14");
 Console.WriteLine("=========================================================================");
 Dec14.SolvePartOne();
-Dec14.SolvePartTwo();*/
+Dec14.SolvePartTwo();
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 15");
 Console.WriteLine("=========================================================================");
 Dec15.SolvePartOne();
-Dec15.SolvePartTwo();
+Dec15.SolvePartTwo();*/
+
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 16");
+Console.WriteLine("=========================================================================");
+Dec16.SolvePartOne();
