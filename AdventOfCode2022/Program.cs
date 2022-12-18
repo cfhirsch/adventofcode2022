@@ -95,9 +95,14 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 16");
 Console.WriteLine("=========================================================================");
 Dec16.SolvePartOne();
-Dec16.SolvePartTwo();*/
+Dec16.SolvePartTwo();
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 17");
 Console.WriteLine("=========================================================================");
-Dec17.SolvePartOne(false);
+Dec17.SolvePartOne(false);*/
+
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 18");
+Console.WriteLine("=========================================================================");
+Dec18.SolvePartOne();
