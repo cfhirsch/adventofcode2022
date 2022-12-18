@@ -100,4 +100,4 @@ Dec16.SolvePartTwo();*/
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 17");
 Console.WriteLine("=========================================================================");
-Dec17.SolvePartOne();
+Dec17.SolvePartOne(false);

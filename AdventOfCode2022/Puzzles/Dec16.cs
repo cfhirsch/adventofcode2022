@@ -92,75 +92,59 @@ namespace AdventOfCode2022.Puzzles
 
             Valve start = valveDict["AA"];
 
-            HashSet<Valve> test = valveDict.Values.Take(5).ToHashSet();
-            foreach (HashSet<Valve> subset in GetSubsets(test, 2))
-            {
-                Console.WriteLine(string.Join(",", subset.Select(s => s.Label).ToArray()));
-            }
-
+            
             //Lets figure out which valves are reachble in 26 minutes - does that reduce the search space?
            
-            var openValves = valveDict.Values.Where(v => !closedValves.Contains(v)).ToHashSet();
+            var openValves = valveDict.Values.Where(
+                v => !closedValves.Contains(v) && dist[(start, v)] < 25).ToHashSet();
             // Look at all possible ways of dividing unopened valves between me and elephant.
 
             int maxFlow = 0;
-            int count = 0;
-
-            var visited = new HashSet<string>();
-            foreach (HashSet<Valve> subset in GetSubsets(openValves, openValves.Count / 2))
+            
+            for (int i = 0; i <= openValves.Count / 2; i++)
             {
-                HashSet<Valve> myClosedValves = closedValves.Union(subset).ToHashSet();
-                HashSet<Valve> elephantsClosedValves = closedValves.Union(openValves.Except(subset)).ToHashSet();
-
-                string myKey = GetKey(myClosedValves);
-                string elephantKey = GetKey(elephantsClosedValves);
-                if (visited.Contains(myKey) ||
-                    visited.Contains(elephantKey))
-                {
-                    continue;
-                }
-
-                visited.Add(myKey);
-                visited.Add(elephantKey);
-
-                count++;
-
                 Console.SetCursorPosition(0, 5);
-                Console.WriteLine($"Count = {count}.");
+                Console.WriteLine($"Checking all sets of size {i}.");
+                int count = 0;
 
-               /* Console.WriteLine("Mt closed valves: ");
-                foreach (Valve valve in myClosedValves)
+                foreach (HashSet<Valve> subset in GetSubsets(openValves, i))
                 {
-                    Console.WriteLine(valve.Label);
-                }
+                    HashSet<Valve> myClosedValves = closedValves.Union(subset).ToHashSet();
+                    HashSet<Valve> elephantsClosedValves = closedValves.Union(openValves.Except(subset)).ToHashSet();
 
-                Console.WriteLine("Elephant's closed valves: ");
-                foreach (Valve valve in elephantsClosedValves)
-                {
-                    Console.WriteLine(valve.Label);
-                }*/
+                    string myKey = GetKey(myClosedValves);
+                    string elephantKey = GetKey(elephantsClosedValves);
 
-                int myMax = GetMaxFlow(
-                    start,
-                    valveDict,
-                    myClosedValves,
-                    dist,
-                    memoized,
-                    26);
+                    count++;
 
-                int elephantMax = GetMaxFlow(
-                    start,
-                    valveDict,
-                    elephantsClosedValves,
-                    dist,
-                    memoized,
-                    26);
+                    Console.SetCursorPosition(0, 6);
+                    Console.WriteLine($"Count = {count}.");
 
-                int max = myMax + elephantMax;
+                    int myMax = GetMaxFlow(
+                        start,
+                        valveDict,
+                        myClosedValves,
+                        dist,
+                        memoized,
+                        26);
 
-                if (max > maxFlow)
-                {
-                    maxFlow = max;
+                    int elephantMax = GetMaxFlow(
+                        start,
+                        valveDict,
+                        elephantsClosedValves,
+                        dist,
+                        memoized,
+                        26);
+
+                    int max = myMax + elephantMax;
+
+                    if (max > maxFlow)
+                    {
+                        maxFlow = max;
+                    }
+
+                    Console.SetCursorPosition(0, 7);
+                    Console.WriteLine($"Max = {maxFlow}.");
                 }
             }
 

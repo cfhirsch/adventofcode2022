@@ -5,10 +5,10 @@ namespace AdventOfCode2022.Puzzles
 {
     internal class Dec17
     {
-        public static void SolvePartOne()
+        public static void SolvePartOne(bool draw)
         {
             string line = PuzzleReader.ReadLines(17).First();
-            int numTiles = 10;
+            int numTiles = 2022;
             TileShape[] shapes = Enum.GetValues<TileShape>();
 
             const int left = 0;
@@ -25,7 +25,7 @@ namespace AdventOfCode2022.Puzzles
 
                 var tile = new Tile(shape, left, top);
 
-                Draw(tile, points);
+                Draw(tile, points, draw);
                 bool moved = true;
                 while (moved)
                 {
@@ -46,7 +46,7 @@ namespace AdventOfCode2022.Puzzles
 
                     if (moved)
                     {
-                        Draw(tile, points);
+                        Draw(tile, points, draw);
                     }
 
                     //Console.Read();
@@ -55,7 +55,7 @@ namespace AdventOfCode2022.Puzzles
 
                     if (moved)
                     {
-                        Draw(tile, points);
+                        Draw(tile, points, draw);
                     }
 
                     movPos = (movPos + 1) % line.Length;
@@ -66,11 +66,22 @@ namespace AdventOfCode2022.Puzzles
                 points = points.Union(tile.Points).ToHashSet();
 
                 top = points.Max(p => p.Y);
+
+                Console.SetCursorPosition(0, 0);
+                Console.WriteLine($"Tile {i + 1}.");
             }
+
+            Console.SetCursorPosition(0, 1);
+            Console.WriteLine($"Tower of rocks is {top} units tall.");
         }
 
-        public static void Draw(Tile tile, HashSet<Point> points)
+        public static void Draw(Tile tile, HashSet<Point> points, bool draw)
         {
+            if (!draw)
+            {
+                return;
+            }
+
             int minX = 0;
             int maxX = 8;
             int maxY = Int32.MinValue;
