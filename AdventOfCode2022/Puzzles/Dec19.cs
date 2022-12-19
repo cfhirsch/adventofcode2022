@@ -21,41 +21,53 @@ namespace AdventOfCode2022.Puzzles
             // (4) Number of minutes left.
             var keyReg = new Regex(@"O=(\d+),C=(\d+),Ob=(\d+),G=(\d+),Ore=(\d+),Clay=(\d+),Obs=(\d+),OG=(\d+),M=(\d+)", RegexOptions.Compiled);
 
-            
-            var queue = new Queue<string>();
-            queue.Enqueue("O=1,C=0,Ob=0,G=0,OG=0,M=24");
             int maxOpenable = 0;
-            while (queue.Count > 0)
+
+            foreach (BluePrint bluePrint in bluePrints)
             {
-                string key = queue.Dequeue();
-                Match match = keyReg.Match(key);
-
-                int oreRobots = Int32.Parse(match.Groups[1].Value);
-                int clayRobots = Int32.Parse(match.Groups[2].Value);
-                int obsidianRobots = Int32.Parse(match.Groups[3].Value);
-                int geodeRobots = Int32.Parse(match.Groups[4].Value);
-                int ore = Int32.Parse(match.Groups[5].Value);
-                int clay = Int32.Parse(match.Groups[6].Value);
-                int obsidian = Int32.Parse(match.Groups[7].Value);
-                int openedGeodes = Int32.Parse(match.Groups[8].Value);
-                int minutesLeft = Int32.Parse(match.Groups[9].Value);
-
-                if (minutesLeft == 0)
+                var queue = new Queue<string>();
+                queue.Enqueue("O=1,C=0,Ob=0,G=0,OG=0,M=24");
+                while (queue.Count > 0)
                 {
-                    if (openedGeodes > maxOpenable)
+                    string key = queue.Dequeue();
+                    Match match = keyReg.Match(key);
+
+                    int oreRobots = Int32.Parse(match.Groups[1].Value);
+                    int clayRobots = Int32.Parse(match.Groups[2].Value);
+                    int obsidianRobots = Int32.Parse(match.Groups[3].Value);
+                    int geodeRobots = Int32.Parse(match.Groups[4].Value);
+                    int ore = Int32.Parse(match.Groups[5].Value);
+                    int clay = Int32.Parse(match.Groups[6].Value);
+                    int obsidian = Int32.Parse(match.Groups[7].Value);
+                    int openedGeodes = Int32.Parse(match.Groups[8].Value);
+                    int minutesLeft = Int32.Parse(match.Groups[9].Value);
+
+                    if (minutesLeft == 0)
                     {
-                        maxOpenable = openedGeodes;
+                        if (openedGeodes > maxOpenable)
+                        {
+                            maxOpenable = openedGeodes;
+                        }
+
+                        continue;
                     }
 
-                    continue;
-                }
-                
-                if (geodeRobots > 0)
-                {
-                    openedGeodes += geodeRobots;
-                }
+                    if (geodeRobots > 0)
+                    {
+                        openedGeodes += geodeRobots;
+                    }
 
+                    // Can I build any new geode robots?
+                    List<(ResourceType, int)> required = bluePrint.ResourceDict[ResourceType.Geode];
+                    int oreRequired = required.First(r => r.Item1 == ResourceType.Ore).Item2;
+                    int obsidianRequired = required.First(r => r.Item1 == ResourceType.Obsidian).Item2;
 
+                    if (ore <= oreRequired && obsidian <= obsidianRequired)
+                    {
+                        ore -= oreRequired;
+                        obsidian -= obsidianRequired;
+                    }
+                }
             }
         }
     }
@@ -67,14 +79,12 @@ namespace AdventOfCode2022.Puzzles
         private static Regex oreAndClayRegex = new Regex(@"(\d+) ore and (\d+) clay", RegexOptions.Compiled);
         private static Regex oreAndObsidianRegex = new Regex(@"(\d+) ore and (\d+) obsidian", RegexOptions.Compiled);
 
-        private readonly Dictionary<ResourceType, List<(ResourceType, int)>> resourceDict;
-
         public BluePrint(string blueprint)
         {
             Match match = bluePrintReg.Match(blueprint);
             this.Id = Int32.Parse(match.Groups[1].Value);
 
-            this.resourceDict = new Dictionary<ResourceType, List<(ResourceType, int)>>();
+            this.ResourceDict = new Dictionary<ResourceType, List<(ResourceType, int)>>();
 
             string[] lineParts = blueprint.Split(".", StringSplitOptions.RemoveEmptyEntries);
             match = oreRegex.Match(lineParts[0]);
@@ -89,7 +99,7 @@ namespace AdventOfCode2022.Puzzles
                 (ResourceType.Clay, Int32.Parse(match.Groups[1].Value))
             };
 
-            this.resourceDict.Add(ResourceType.Clay, resourceList);
+            this.ResourceDict.Add(ResourceType.Clay, resourceList);
 
             match = oreAndClayRegex.Match(lineParts[1]);
             resourceList = new List<(ResourceType, int)>
@@ -98,7 +108,7 @@ namespace AdventOfCode2022.Puzzles
                 (ResourceType.Clay, Int32.Parse(match.Groups[2].Value))
             };
 
-            this.resourceDict.Add(ResourceType.Obsidian, resourceList);
+            this.ResourceDict.Add(ResourceType.Obsidian, resourceList);
 
             match = oreAndObsidianRegex.Match(lineParts[2]);
             resourceList = new List<(ResourceType, int)>
@@ -107,7 +117,7 @@ namespace AdventOfCode2022.Puzzles
                 (ResourceType.Obsidian, Int32.Parse(match.Groups[2].Value))
             };
 
-            this.resourceDict.Add(ResourceType.Geode, resourceList);
+            this.ResourceDict.Add(ResourceType.Geode, resourceList);
 
             this.Robots = new List<Robot>
             {
@@ -116,6 +126,8 @@ namespace AdventOfCode2022.Puzzles
         }
 
         public int Id { get; private set; }
+
+        public Dictionary<ResourceType, List<(ResourceType, int)>> ResourceDict { get; private set; }
 
         public List<Robot> Robots { get; private set; }
 
