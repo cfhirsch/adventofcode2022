@@ -4,7 +4,7 @@ namespace AdventOfCode2022.Puzzles
 {
     internal static class Dec18
     {
-        public static void SolvePartOne()
+        public static void Solve()
         {
             var points = new List<Point3D>();
 

@@ -2,9 +2,10 @@
 {
     internal static class PuzzleReader
     {
-        public static IEnumerable<string> ReadLines(int day)
+        public static IEnumerable<string> ReadLines(int day, bool isTest = false)
         {
-            using (var stream = new FileStream(@$"d:\docs\AdventOfCode2022\Dec{day}.txt", FileMode.Open))
+            string fileName = isTest ? $"Dec{day}_test.txt" : $"Dec{day}.txt";
+            using (var stream = new FileStream(@$"c:\docs\AdventOfCode2022\{fileName}", FileMode.Open))
             {
                 using (var reader = new StreamReader(stream))
                 {
