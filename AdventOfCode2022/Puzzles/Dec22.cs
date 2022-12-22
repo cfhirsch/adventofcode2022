@@ -34,11 +34,18 @@ namespace AdventOfCode2022.Puzzles
             int maxY = mapLines.Count;
 
             var map = new char[maxY, maxX];
-            for (int i = 0; i < maxY; i++)
+            for (int y = 0; y < maxY; y++)
             {
-                for (int j = 0; j < maxX; j++)
+                for (int x = 0; x < maxX; x++)
                 {
-                    map[i, j] = mapLines[i][j];
+                    if (x > mapLines[y].Length - 1)
+                    {
+                        map[y, x] = ' ';
+                    }
+                    else
+                    {
+                        map[y, x] = mapLines[y][x];
+                    }
                 }
             }
 
@@ -61,10 +68,12 @@ namespace AdventOfCode2022.Puzzles
                 if (instructions[instrPos] == 'R')
                 {
                     dir = Turn(dir, TurnDirection.Clockwise);
+                    instrPos++;
                 }
                 else if (instructions[instrPos] == 'L')
                 {
                     dir = Turn(dir, TurnDirection.Counterclockwise);
+                    instrPos++;
                 }
                 else
                 {
@@ -165,11 +174,9 @@ namespace AdventOfCode2022.Puzzles
                         }
                     }
                 }
-
-                instrPos++;
             }
 
-            int password = 6 * (row + 1) + 4 * (col + 1) + DirToNumber(dir);
+            int password = 1000 * (row + 1) + 4 * (col + 1) + DirToNumber(dir);
 
             Console.WriteLine($"Password = {password}.");
         }
@@ -259,6 +266,8 @@ namespace AdventOfCode2022.Puzzles
 
                 Console.WriteLine();
             }
+
+            Console.WriteLine();
         }
 
         private static Direction Turn(Direction dir, TurnDirection turnDir)
