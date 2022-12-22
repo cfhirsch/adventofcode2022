@@ -7,50 +7,10 @@ namespace AdventOfCode2022.Puzzles
     {
         public static void SolvePartOne(bool isTest = false)
         {
-            // Read in the map.
-            var mapLines = new List<string>();
-            bool parsingMap = true;
-            string instructions = string.Empty;
-
-            foreach (string line in PuzzleReader.ReadLines(22, isTest))
-            {
-                if (string.IsNullOrEmpty(line))
-                {
-                    parsingMap = false;
-                    continue;
-                }
-
-                if (parsingMap)
-                {
-                    mapLines.Add(line);
-                }
-                else
-                {
-                    instructions = line;
-                }
-            }
-
-            int maxX = mapLines.Max(l => l.Length);
-            int maxY = mapLines.Count;
-
-            var map = new char[maxY, maxX];
-            for (int y = 0; y < maxY; y++)
-            {
-                for (int x = 0; x < maxX; x++)
-                {
-                    if (x > mapLines[y].Length - 1)
-                    {
-                        map[y, x] = ' ';
-                    }
-                    else
-                    {
-                        map[y, x] = mapLines[y][x];
-                    }
-                }
-            }
-
             int row = 0;
-            int col = mapLines[row].IndexOf('.');
+
+            (char[,] map, string instructions, int col) = GetPuzzleData(isTest);
+            
             var dir = Direction.Right;
 
             var visited = new Dictionary<(int, int), Direction>();
@@ -60,6 +20,9 @@ namespace AdventOfCode2022.Puzzles
             {
                 PrintMap(map, visited);
             }
+
+            int maxY = map.GetLength(0);
+            int maxX = map.GetLength(1);
 
             // Now execute the instructions.
             int instrPos = 0;
@@ -181,6 +144,247 @@ namespace AdventOfCode2022.Puzzles
             Console.WriteLine($"Password = {password}.");
         }
 
+        public static void SolvePartTwo(bool isTest = false)
+        {
+            int row = 0;
+
+            (char[,] map, string instructions, int col) = GetPuzzleData(isTest);
+
+            // Figure out the cube faces.
+            int cubeLength = isTest ? 4 : 50;
+
+            int faceNumber = 1;
+            int minFaceNumber = 1;
+            
+            int maxY = map.GetLength(0);
+            int maxX = map.GetLength(1);
+
+            var cubeMap = new char[maxY, maxX];
+
+            var cubeCountDict = new Dictionary<int, int>();
+            cubeCountDict[1] = 0;
+            cubeCountDict[2] = 0;
+            cubeCountDict[3] = 0;
+            cubeCountDict[4] = 0;
+            cubeCountDict[5] = 0;
+            cubeCountDict[6] = 0;
+
+            for (int y = 0; y < maxY; y++)
+            {
+                // Find the first nonblank character.
+                int x = 0;
+                while (map[y, x] == ' ')
+                {
+                    x++;
+                }
+
+                faceNumber = minFaceNumber;
+
+                int count = 0;
+                while (x < maxX && map[y, x] != ' ')
+                {
+                    cubeMap[y, x] = $"{faceNumber}"[0];
+                    cubeCountDict[faceNumber]++;
+
+                    count++;
+
+                    if (cubeCountDict[faceNumber] == cubeLength * cubeLength)
+                    {
+                        minFaceNumber++;
+                    }
+
+                    if (count >= cubeLength)
+                    {
+                        count = 0;
+                        faceNumber++;
+                    }
+
+                    x++;
+                }
+            }
+
+            if (isTest)
+            {
+                PrintCubeMap(cubeMap);
+                return;
+            }
+
+            var dir = Direction.Right;
+
+            var visited = new Dictionary<(int, int), Direction>();
+            visited.Add((col, row), dir);
+
+            if (isTest)
+            {
+                PrintMap(map, visited);
+            }
+
+            // Now execute the instructions.
+            int instrPos = 0;
+            while (instrPos < instructions.Length)
+            {
+                if (instructions[instrPos] == 'R')
+                {
+                    dir = Turn(dir, TurnDirection.Clockwise);
+                    instrPos++;
+                }
+                else if (instructions[instrPos] == 'L')
+                {
+                    dir = Turn(dir, TurnDirection.Counterclockwise);
+                    instrPos++;
+                }
+                else
+                {
+                    var sb = new StringBuilder();
+                    int num;
+                    while (instrPos < instructions.Length && Int32.TryParse(instructions[instrPos].ToString(), out num))
+                    {
+                        sb.Append(instructions[instrPos]);
+                        instrPos++;
+                    }
+
+                    num = Int32.Parse(sb.ToString());
+
+                    for (int i = 0; i < num; i++)
+                    {
+                        (int x, int y) = Move((col, row), dir);
+
+                        // Bound checks.
+                        if (x < 0)
+                        {
+                            x = maxX - 1;
+                        }
+
+                        if (x >= maxX)
+                        {
+                            x = 0;
+                        }
+
+                        if (y < 0)
+                        {
+                            y = maxY - 1;
+                        }
+
+                        if (y >= maxY)
+                        {
+                            y = 0;
+                        }
+
+                        // Wrap around the board if needed.
+                        if (map[y, x] == ' ')
+                        {
+                            switch (dir)
+                            {
+                                case Direction.Up:
+                                    y = maxY - 1;
+                                    while (map[y, x] == ' ')
+                                    {
+                                        y--;
+                                    }
+
+                                    break;
+
+                                case Direction.Right:
+                                    x = 0;
+                                    while (map[y, x] == ' ')
+                                    {
+                                        x++;
+                                    }
+
+                                    break;
+
+                                case Direction.Down:
+                                    y = 0;
+                                    while (map[y, x] == ' ')
+                                    {
+                                        y++;
+                                    }
+
+                                    break;
+
+                                case Direction.Left:
+                                    x = maxX - 1;
+                                    while (map[y, x] == ' ')
+                                    {
+                                        x--;
+                                    }
+
+                                    break;
+
+                                default:
+                                    throw new ArgumentException($"Unexpected direction {dir}.");
+                            }
+                        }
+
+                        if (map[y, x] == '#')
+                        {
+                            break;
+                        }
+
+                        row = y;
+                        col = x;
+
+                        visited[(col, row)] = dir;
+
+                        if (isTest)
+                        {
+                            PrintMap(map, visited);
+                        }
+                    }
+                }
+            }
+
+            int password = 1000 * (row + 1) + 4 * (col + 1) + DirToNumber(dir);
+
+            Console.WriteLine($"Password = {password}.");
+        }
+
+        private static (char[,], string, int) GetPuzzleData(bool isTest = false)
+        {
+            var mapLines = new List<string>();
+            bool parsingMap = true;
+            string instructions = string.Empty;
+
+            foreach (string line in PuzzleReader.ReadLines(22, isTest))
+            {
+                if (string.IsNullOrEmpty(line))
+                {
+                    parsingMap = false;
+                    continue;
+                }
+
+                if (parsingMap)
+                {
+                    mapLines.Add(line);
+                }
+                else
+                {
+                    instructions = line;
+                }
+            }
+
+            int maxX = mapLines.Max(l => l.Length);
+            int maxY = mapLines.Count;
+
+            var map = new char[maxY, maxX];
+            for (int y = 0; y < maxY; y++)
+            {
+                for (int x = 0; x < maxX; x++)
+                {
+                    if (x > mapLines[y].Length - 1)
+                    {
+                        map[y, x] = ' ';
+                    }
+                    else
+                    {
+                        map[y, x] = mapLines[y][x];
+                    }
+                }
+            }
+
+            return (map, instructions, mapLines[0].IndexOf('.'));
+        }
+
         private static int DirToNumber(Direction dir)
         {
             switch (dir)
@@ -223,6 +427,24 @@ namespace AdventOfCode2022.Puzzles
                 default:
                     throw new ArgumentException($"Unexpected direction {dir}.");
             }
+        }
+
+        private static void PrintCubeMap(char[,] map)
+        {
+            int maxX = map.GetLength(1);
+            int maxY = map.GetLength(0);
+
+            for (int y = 0; y < maxY; y++)
+            {
+                for (int x = 0; x < maxX; x++)
+                {
+                    Console.Write(map[y, x]);
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.WriteLine();
         }
 
         private static void PrintMap(char[,] map, Dictionary<(int, int), Direction> visited)
