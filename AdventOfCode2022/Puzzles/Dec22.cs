@@ -166,7 +166,7 @@ namespace AdventOfCode2022.Puzzles
                         row = y;
                         col = x;
 
-                        visited.Add((col, row), dir);
+                        visited[(col, row)] = dir;
 
                         if (isTest)
                         {

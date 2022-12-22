@@ -125,4 +125,4 @@ Dec21.SolvePartTwo(isTest: false);*/
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 22");
 Console.WriteLine("=========================================================================");
-Dec22.SolvePartOne(isTest: true);
+Dec22.SolvePartOne(isTest: false);
