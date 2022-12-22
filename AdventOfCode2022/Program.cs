@@ -89,15 +89,14 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 15");
 Console.WriteLine("=========================================================================");
 Dec15.SolvePartOne();
-Dec15.SolvePartTwo();
+Dec15.SolvePartTwo();*/
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 16");
 Console.WriteLine("=========================================================================");
-Dec16.SolvePartOne();
-Dec16.SolvePartTwo();
+Dec16.SolvePartOne(isTest: false);
 
-Console.WriteLine("=========================================================================");
+/*Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 17");
 Console.WriteLine("=========================================================================");
 Dec17.SolvePartOne(false);
@@ -115,10 +114,10 @@ Dec19.SolvePartOne();
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 20");
 Console.WriteLine("=========================================================================");
-Dec20.SolvePartOne(isTest: true);*/
+Dec20.SolvePartOne(isTest: true);
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 21");
 Console.WriteLine("=========================================================================");
 Dec21.SolvePartOne(isTest: false);
-Dec21.SolvePartTwo(isTest: false);
+Dec21.SolvePartTwo(isTest: false);*/
