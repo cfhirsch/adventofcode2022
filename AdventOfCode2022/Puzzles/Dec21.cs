@@ -1,4 +1,5 @@
 ﻿using AdventOfCode2022.Utilities;
+using System.Security;
 using System.Text.RegularExpressions;
 
 namespace AdventOfCode2022.Puzzles
@@ -58,7 +59,6 @@ namespace AdventOfCode2022.Puzzles
                     toEvaluate = current.Right;
                 }
                 else
-
                 {
                     next = current.Right;
                     toEvaluate = current.Left;
@@ -80,7 +80,19 @@ namespace AdventOfCode2022.Puzzles
                         break;
 
                     case ExpressionType.Minus:
-                        valToMatch += result;
+                        // x - [expr with human] = y
+                        // - [expr with human] = y - x
+                        // [expr with human] = x - y = -(y - x)
+                        if (next == current.Right)
+                        {
+                            valToMatch -= result;
+                            valToMatch *= -1;
+                        }
+                        else
+                        {
+                            valToMatch += result;
+                        }
+                        
                         break;
 
                     default:
@@ -259,9 +271,6 @@ namespace AdventOfCode2022.Puzzles
                         Expression = this
                     };
 
-                    exprNode.Left.Parent = exprNode;
-                    exprNode.Right.Parent = exprNode;
-
                     return exprNode;
 
                 case ExpressionType.Minus:
@@ -276,9 +285,6 @@ namespace AdventOfCode2022.Puzzles
                         Right = right.BuildTree(exprDict),
                         Expression = this
                     };
-
-                    exprNode.Left.Parent = exprNode;
-                    exprNode.Right.Parent = exprNode;
 
                     return exprNode;
 
@@ -295,9 +301,6 @@ namespace AdventOfCode2022.Puzzles
                         Expression = this
                     };
 
-                    exprNode.Left.Parent = exprNode;
-                    exprNode.Right.Parent = exprNode;
-
                     return exprNode;
 
                 case ExpressionType.Divide:
@@ -312,9 +315,6 @@ namespace AdventOfCode2022.Puzzles
                         Right = right.BuildTree(exprDict),
                         Expression = this
                     };
-
-                    exprNode.Left.Parent = exprNode;
-                    exprNode.Right.Parent = exprNode;
 
                     return exprNode;
 
@@ -347,6 +347,7 @@ namespace AdventOfCode2022.Puzzles
                 case ExpressionType.Plus:
                     left = exprDict[this.left];
                     right = exprDict[this.right];
+
                     return $"({left.GetString(exprDict)}) + ({right.GetString(exprDict)})";
 
                 case ExpressionType.Minus:
@@ -381,8 +382,6 @@ namespace AdventOfCode2022.Puzzles
         public ExpressionNode Left { get; set; }
 
         public ExpressionNode Right { get; set; }
-
-        public ExpressionNode Parent { get; set; }
 
         public int Value { get; set; }
     }
