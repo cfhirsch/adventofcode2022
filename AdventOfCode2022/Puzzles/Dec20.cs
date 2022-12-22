@@ -4,7 +4,8 @@ namespace AdventOfCode2022.Puzzles
 {
     internal static class Dec20
     {
-        public static void SolvePartOne(bool isTest)
+        // Wrong answer: 4542 (too high)
+        public static void SolvePartOne(bool isTest = false)
         {
             var numbers = new List<int>();
             foreach (string line in PuzzleReader.ReadLines(20, isTest))
@@ -25,7 +26,7 @@ namespace AdventOfCode2022.Puzzles
                 int insertAt = nextj;
 
                 if (i < 0)
-                {
+                {   
                     insertAt--;
                 }
                 else if (j + i >= numbers.Count)
