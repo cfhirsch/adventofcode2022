@@ -46,6 +46,14 @@ namespace AdventOfCode2022.Puzzles
             int col = mapLines[row].IndexOf('.');
             var dir = Direction.Right;
 
+            var visited = new Dictionary<(int, int), Direction>();
+            visited.Add((col, row), dir);
+
+            if (isTest)
+            {
+                PrintMap(map, visited);
+            }
+
             // Now execute the instructions.
             int instrPos = 0;
             while (instrPos < instructions.Length)
@@ -148,6 +156,13 @@ namespace AdventOfCode2022.Puzzles
                         
                         row = y;
                         col = x;
+
+                        visited.Add((col, row), dir);
+
+                        if (isTest)
+                        {
+                            PrintMap(map, visited);
+                        }
                     }
                 }
 
@@ -200,6 +215,49 @@ namespace AdventOfCode2022.Puzzles
 
                 default:
                     throw new ArgumentException($"Unexpected direction {dir}.");
+            }
+        }
+
+        private static void PrintMap(char[,] map, Dictionary<(int, int), Direction> visited)
+        {
+            int maxX = map.GetLength(1);
+            int maxY = map.GetLength(0);
+
+            for (int y = 0; y < maxY; y++)
+            {
+                for (int x = 0; x < maxX; x++)
+                {
+                    if (visited.ContainsKey((x, y)))
+                    {
+                        switch (visited[(x, y)])
+                        {
+                            case Direction.Up:
+                                Console.Write('^');
+                                break;
+
+                            case Direction.Right:
+                                Console.Write('>');
+                                break;
+
+                            case Direction.Down:
+                                Console.Write('v');
+                                break;
+
+                            case Direction.Left:
+                                Console.Write('<');
+                                break;
+
+                            default:
+                                throw new ArgumentException($"Unexpected direction {visited[(x, y)]}");
+                        }
+                    }
+                    else
+                    {
+                        Console.Write(map[y, x]);
+                    }
+                }
+
+                Console.WriteLine();
             }
         }
 
