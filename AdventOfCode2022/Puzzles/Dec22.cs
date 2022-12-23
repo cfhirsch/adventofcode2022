@@ -169,6 +169,8 @@ namespace AdventOfCode2022.Puzzles
             cubeCountDict[5] = 0;
             cubeCountDict[6] = 0;
 
+            var cubeFaceLocationDict = new Dictionary<int, (int, int)>();
+
             for (int y = 0; y < maxY; y++)
             {
                 // Find the first nonblank character.
@@ -183,6 +185,11 @@ namespace AdventOfCode2022.Puzzles
                 int count = 0;
                 while (x < maxX && map[y, x] != ' ')
                 {
+                    if (!cubeFaceLocationDict.ContainsKey(faceNumber))
+                    {
+                        cubeFaceLocationDict.Add(faceNumber, (x, y));
+                    }
+
                     cubeMap[y, x] = $"{faceNumber}"[0];
                     cubeCountDict[faceNumber]++;
 
@@ -203,11 +210,11 @@ namespace AdventOfCode2022.Puzzles
                 }
             }
 
-            if (isTest)
-            {
-                PrintCubeMap(cubeMap);
-                return;
-            }
+            //if (isTest)
+           // {
+                //PrintCubeMap(cubeMap);
+                //return;
+            //}
 
             var dir = Direction.Right;
 
@@ -426,6 +433,48 @@ namespace AdventOfCode2022.Puzzles
 
                 default:
                     throw new ArgumentException($"Unexpected direction {dir}.");
+            }
+        }
+
+        private static (int, int) MoveOnCube(
+            (int, int) coords, 
+            Direction dir, 
+            char[,] map,
+            char[,] cubeMap,
+            Dictionary<int, (int, int)> cubeFaceDict,
+            int cubeFaceLength)
+        {
+            (int x, int y) = coords;
+
+            int maxX = map.GetLength(1);
+            int maxY = map.GetLength(0);
+            int faceNumber = cubeMap[y, x];
+
+            switch (dir)
+            {
+                case Direction.Up:
+                    y--;
+                    break;
+
+                case Direction.Right:
+                    x++;
+                    break;
+
+                case Direction.Down:
+                    y++;
+                    break;
+
+                case Direction.Left:
+                    x--;
+                    break;
+
+                default:
+                    throw new ArgumentException($"Unexpected direction {dir}.");
+            }
+
+            if (x < 0)
+            {
+                
             }
         }
 
