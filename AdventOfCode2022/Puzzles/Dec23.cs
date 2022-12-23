@@ -1,0 +1,158 @@
+﻿using System.Diagnostics.Contracts;
+using System.Drawing;
+
+namespace AdventOfCode2022.Puzzles
+{
+    internal static class Dec23
+    {
+        public static void SolvePartOne(bool isTest = false)
+        {
+            var elfLocations = new HashSet<Point>();
+            var elfProposals = new List<ElfProposal>();
+
+            int numRounds = 10;
+
+            for (int i = 0; i < numRounds; i++)
+            {
+                // First Half - each elf comes up with a proposed move.
+                var proposalDict = new Dictionary<Point, Point>();
+
+                foreach (Point pt in elfLocations)
+                {
+                    // If there are no neighboring elves, current elf does nothing this round.
+                    if (!Enum.GetValues<ElfDirection>().Except(
+                        new[] { ElfDirection.None }).Select(
+                            d => ElfProposal.GetNeighbor(pt, d)).Any(p => elfLocations.Contains(p)))
+                    {
+                        continue;
+                    }
+
+                    foreach (ElfProposal proposal in elfProposals)
+                    {
+                        if (proposal.Evaluate(elfLocations, pt))
+                        {
+                            Point proposed = ElfProposal.GetNeighbor(pt, proposal.Direction);
+                            proposalDict[pt] = proposed;
+                        }
+                    }
+                }
+
+                // Second Half - for each elf that proposes a move, move if they are the only elf 
+                // proposing to move to proposed location.
+                foreach (KeyValuePair<Point, Point> kvp in proposalDict)
+                {
+                    if (proposalDict.Count(k => k.Value == kvp.Value) == 1)
+                    {
+                        elfLocations.Remove(kvp.Key);
+                        elfLocations.Add(kvp.Value);
+                    }
+                }
+
+                // Finally rotate the proposals.
+                ElfProposal first = elfProposals.First();
+                elfProposals = elfProposals.Skip(1).ToList();
+                elfProposals.Add(first);
+            }
+        }
+
+        public static void PrintMap(HashSet<Point> elfLocations)
+        {
+            int minX = elfLocations.Min(p => p.X);
+            int maxX = elfLocations.Max(p => p.X);
+            int minY = elfLocations.Min(p => p.Y);
+            int maxY = elfLocations.Max(p => p.Y);
+
+            for (int y = minY; y <= maxY; y++)
+            {
+                for (int x = minX; x <= maxX; x++)
+                {
+                    if (elfLocations.Contains(new Point(x, y)))
+                    {
+                        Console.Write(".");
+                    }
+                    else
+                    {
+                        Console.Write("#");
+                    }
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.WriteLine();
+        }
+    }
+
+    public struct ElfProposal
+    {
+        public ElfProposal(List<ElfDirection> elfDirection, ElfDirection direction)
+        {
+            this.ElfDirections = elfDirection;
+            this.Direction = direction;
+        }
+
+        public List<ElfDirection> ElfDirections { get; private set; }
+
+        public ElfDirection Direction { get; private set; }
+
+        public bool Evaluate(HashSet<Point> elfLocations, Point currentLocation)
+        {
+            foreach (ElfDirection dir in this.ElfDirections)
+            {
+                Point neighbor = GetNeighbor(currentLocation, dir);
+                if (elfLocations.Contains(neighbor))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static Point GetNeighbor(Point current, ElfDirection dir)
+        {
+            switch (dir)
+            {
+                case ElfDirection.North:
+                    return new Point(current.X, current.Y - 1);
+
+                case ElfDirection.NorthEast:
+                    return new Point(current.X + 1, current.Y - 1);
+
+                case ElfDirection.East:
+                    return new Point(current.X + 1, current.Y);
+
+                case ElfDirection.SouthEast:
+                    return new Point(current.X + 1, current.Y + 1);
+
+                case ElfDirection.South:
+                    return new Point(current.X, current.Y + 1);
+
+                case ElfDirection.SouthWest:
+                    return new Point(current.X - 1, current.Y + 1);
+
+                case ElfDirection.West:
+                    return new Point(current.X - 1, current.Y);
+
+                case ElfDirection.NorthWest:
+                    return new Point(current.X - 1, current.Y - 1);
+
+                default:
+                    throw new ArgumentException($"Unexpected elf direction {dir}.");
+            }
+        }
+    }
+
+    public enum ElfDirection
+    {
+        None,
+        North,
+        NorthEast,
+        East,
+        SouthEast,
+        South,
+        SouthWest,
+        West,
+        NorthWest
+    }
+}
