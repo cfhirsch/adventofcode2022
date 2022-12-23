@@ -74,6 +74,7 @@ If there is no Elf in the E, NE, or SE adjacent positions, the Elf proposes movi
                         {
                             Point proposed = ElfProposal.GetNeighbor(pt, proposal.Direction);
                             proposalDict[pt] = proposed;
+                            break;
                         }
                     }
                 }
@@ -96,6 +97,26 @@ If there is no Elf in the E, NE, or SE adjacent positions, the Elf proposes movi
 
                 PrintMap(elfLocations, $"End of Round {i + 1}", isTest);
             }
+
+            // Now find the smallest rectangle that contains all the elves, and count the number of empty tiles.
+            int minX = elfLocations.Min(p => p.X);
+            int maxX = elfLocations.Max(p => p.X);
+            int minY = elfLocations.Min(p => p.Y);
+            int maxY = elfLocations.Max(p => p.Y);
+
+            int count = 0;
+            for (y = minY; y <= maxY; y++)
+            {
+                for (int x = minX; x <= maxX; x++)
+                {
+                    if (!elfLocations.Contains(new Point(x, y)))
+                    {
+                        count++;
+                    }
+                }
+            }
+
+            Console.WriteLine($"There are {count} empty ground tiles.");
         }
 
         public static void PrintMap(HashSet<Point> elfLocations, string title, bool isTest)
@@ -118,11 +139,11 @@ If there is no Elf in the E, NE, or SE adjacent positions, the Elf proposes movi
                 {
                     if (elfLocations.Contains(new Point(x, y)))
                     {
-                        Console.Write(".");
+                        Console.Write("#");
                     }
                     else
                     {
-                        Console.Write("#");
+                        Console.Write(".");
                     }
                 }
 
