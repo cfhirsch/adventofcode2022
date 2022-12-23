@@ -436,7 +436,7 @@ namespace AdventOfCode2022.Puzzles
             }
         }
 
-        private static (int, int) MoveOnCube(
+       /* private static (int, int) MoveOnCube(
             (int, int) coords, 
             Direction dir, 
             char[,] map,
@@ -476,7 +476,7 @@ namespace AdventOfCode2022.Puzzles
             {
                 
             }
-        }
+        }*/
 
         private static void PrintCubeMap(char[,] map)
         {
