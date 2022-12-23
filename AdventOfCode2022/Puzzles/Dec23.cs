@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Contracts;
+﻿using AdventOfCode2022.Utilities;
+using System.Diagnostics.Contracts;
 using System.Drawing;
 
 namespace AdventOfCode2022.Puzzles
@@ -10,7 +11,47 @@ namespace AdventOfCode2022.Puzzles
             var elfLocations = new HashSet<Point>();
             var elfProposals = new List<ElfProposal>();
 
+            int y = 0;
+            foreach (string line in PuzzleReader.ReadLines(23, isTest))
+            {
+                for (int x = 0; x < line.Length; x++)
+                {
+                    if (line[x] == '#')
+                    {
+                        elfLocations.Add(new Point(x, y));
+                    }
+                }
+
+                y++;
+            }
+
+            /*If there is no Elf in the N, NE, or NW adjacent positions, the Elf proposes moving north one step.
+If there is no Elf in the S, SE, or SW adjacent positions, the Elf proposes moving south one step.
+If there is no Elf in the W, NW, or SW adjacent positions, the Elf proposes moving west one step.
+If there is no Elf in the E, NE, or SE adjacent positions, the Elf proposes moving east one step.*/
+            elfProposals.Add(
+                new ElfProposal(
+                    new List<ElfDirection>(new[] { ElfDirection.North, ElfDirection.NorthEast, ElfDirection.NorthWest }),
+                    ElfDirection.North));
+
+            elfProposals.Add(
+                new ElfProposal(
+                    new List<ElfDirection>(new[] { ElfDirection.South, ElfDirection.SouthEast, ElfDirection.SouthWest }),
+                    ElfDirection.South));
+
+            elfProposals.Add(
+                new ElfProposal(
+                    new List<ElfDirection>(new[] { ElfDirection.West, ElfDirection.NorthWest, ElfDirection.SouthWest }),
+                    ElfDirection.West));
+
+            elfProposals.Add(
+                new ElfProposal(
+                    new List<ElfDirection>(new[] { ElfDirection.East, ElfDirection.NorthEast, ElfDirection.SouthEast }),
+                    ElfDirection.East));
+
             int numRounds = 10;
+
+            PrintMap(elfLocations, "Initial State", isTest);
 
             for (int i = 0; i < numRounds; i++)
             {
@@ -52,11 +93,20 @@ namespace AdventOfCode2022.Puzzles
                 ElfProposal first = elfProposals.First();
                 elfProposals = elfProposals.Skip(1).ToList();
                 elfProposals.Add(first);
+
+                PrintMap(elfLocations, $"End of Round {i + 1}", isTest);
             }
         }
 
-        public static void PrintMap(HashSet<Point> elfLocations)
+        public static void PrintMap(HashSet<Point> elfLocations, string title, bool isTest)
         {
+            if (!isTest)
+            {
+                return;
+            }
+
+            Console.WriteLine($"== {title} ==");
+
             int minX = elfLocations.Min(p => p.X);
             int maxX = elfLocations.Max(p => p.X);
             int minY = elfLocations.Min(p => p.Y);
