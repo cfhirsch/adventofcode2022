@@ -93,7 +93,7 @@ Dec15.SolvePartTwo();
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 16");
-Console.WriteLine("=========================================================================");
+Console.WriteLine("=========================================================================");*/
 //Dec16.SolvePartOne(isTest: false);
 Dec16.SolvePartTwo(isTest: true);
 
@@ -127,10 +127,10 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 22");
 Console.WriteLine("=========================================================================");
 Dec22.SolvePartOne(isTest: false);
-Dec22.SolvePartTwo(isTest: false);*/
+Dec22.SolvePartTwo(isTest: false);
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 23");
 Console.WriteLine("=========================================================================");
 Dec23.Solve(isTest: false);
-Dec23.Solve(isTest: false, isPartTwo: true);
+Dec23.Solve(isTest: false, isPartTwo: true);*/
