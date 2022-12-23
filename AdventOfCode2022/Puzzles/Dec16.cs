@@ -326,8 +326,8 @@ namespace AdventOfCode2022.Puzzles
 
             int max;
 
-            (Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) subkey;
-            string subkeyStr;
+            (Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) subkey, subkey2;
+            string subkeyStr, subkeyStr2;
 
             // If the human and elephant are at different valves, and both are closed,
             // comsoider the solution where both human and elephant open their valves on this turn
@@ -343,6 +343,17 @@ namespace AdventOfCode2022.Puzzles
                 if (!memoized.ContainsKey(subkeyStr))
                 {
                     memoized[subkeyStr] = FindMaximalFlow2(memoized, valveDict, dist, subkey);
+
+                    subkey2 = (
+                        elephantValve,
+                        humanValve,
+                        elephantReachableWith.Except(new[] { humanValve }).ToHashSet(),
+                        humanReachableWith.Except(new[] { elephantValve }).ToHashSet(),
+                        minutesLeft - 1);
+
+                    subkeyStr2 = GetKey2(subkey2);
+
+                    memoized[subkeyStr2] = memoized[subkeyStr];
                 }
 
                 max = (humanValve.FlowRate * (minutesLeft - 1)) +
@@ -372,6 +383,17 @@ namespace AdventOfCode2022.Puzzles
                     if (!memoized.ContainsKey(subkeyStr))
                     {
                         memoized[subkeyStr] = FindMaximalFlow2(memoized, valveDict, dist, subkey);
+
+                        subkey2 = (
+                            elephantValve,
+                            humanNeighbor,
+                            elephantReachableWith,
+                            humanReachableWithout,
+                            minutesLeft - 1);
+
+                        subkeyStr2 = GetKey2(subkey2);
+
+                        memoized[subkeyStr2] = memoized[subkeyStr];
                     }
 
                     max = (elephantValve.FlowRate * (minutesLeft - 1)) + memoized[subkeyStr];
@@ -400,6 +422,17 @@ namespace AdventOfCode2022.Puzzles
                     if (!memoized.ContainsKey(subkeyStr))
                     {
                         memoized[subkeyStr] = FindMaximalFlow2(memoized, valveDict, dist, subkey);
+
+                        subkey2 = (
+                            elephantNeighbor,
+                            humanValve,
+                            elephantReachableWithout,
+                            humanReachableWith,
+                            minutesLeft - 1);
+
+                        subkeyStr2 = GetKey2(subkey2);
+
+                        memoized[subkeyStr2] = memoized[subkeyStr];
                     }
 
                     max = (humanValve.FlowRate * (minutesLeft - 1)) + memoized[subkeyStr];
@@ -429,6 +462,17 @@ namespace AdventOfCode2022.Puzzles
                     if (!memoized.ContainsKey(subkeyStr))
                     {
                         memoized[subkeyStr] = FindMaximalFlow2(memoized, valveDict, dist, subkey);
+
+                        subkey2 = (
+                            elephantNeighbor,
+                            humanNeighbor,
+                            elephantReachableWithout,
+                            humanReachableWithout,
+                            minutesLeft - 1);
+
+                        subkeyStr2 = GetKey2(subkey2);
+
+                        memoized[subkeyStr2] = memoized[subkeyStr];
                     }
 
                     max = memoized[subkeyStr];
