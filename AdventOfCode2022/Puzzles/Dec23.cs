@@ -1,12 +1,11 @@
 ﻿using AdventOfCode2022.Utilities;
-using System.Diagnostics.Contracts;
 using System.Drawing;
 
 namespace AdventOfCode2022.Puzzles
 {
     internal static class Dec23
     {
-        public static void SolvePartOne(bool isTest = false)
+        public static void Solve(bool isTest = false, bool isPartTwo = false)
         {
             var elfLocations = new HashSet<Point>();
             var elfProposals = new List<ElfProposal>();
@@ -49,14 +48,18 @@ If there is no Elf in the E, NE, or SE adjacent positions, the Elf proposes movi
                     new List<ElfDirection>(new[] { ElfDirection.East, ElfDirection.NorthEast, ElfDirection.SouthEast }),
                     ElfDirection.East));
 
-            int numRounds = 10;
+            int numRounds = isPartTwo ? 100000 : 10;
 
             PrintMap(elfLocations, "Initial State", isTest);
 
             for (int i = 0; i < numRounds; i++)
             {
+                Console.SetCursorPosition(0, 5);
+                Console.WriteLine($"Round: {i + 1}");
+
                 // First Half - each elf comes up with a proposed move.
                 var proposalDict = new Dictionary<Point, Point>();
+                bool elfMoved = false;
 
                 foreach (Point pt in elfLocations)
                 {
@@ -87,6 +90,7 @@ If there is no Elf in the E, NE, or SE adjacent positions, the Elf proposes movi
                     {
                         elfLocations.Remove(kvp.Key);
                         elfLocations.Add(kvp.Value);
+                        elfMoved = true;
                     }
                 }
 
@@ -96,27 +100,36 @@ If there is no Elf in the E, NE, or SE adjacent positions, the Elf proposes movi
                 elfProposals.Add(first);
 
                 PrintMap(elfLocations, $"End of Round {i + 1}", isTest);
-            }
 
-            // Now find the smallest rectangle that contains all the elves, and count the number of empty tiles.
-            int minX = elfLocations.Min(p => p.X);
-            int maxX = elfLocations.Max(p => p.X);
-            int minY = elfLocations.Min(p => p.Y);
-            int maxY = elfLocations.Max(p => p.Y);
-
-            int count = 0;
-            for (y = minY; y <= maxY; y++)
-            {
-                for (int x = minX; x <= maxX; x++)
+                if (isPartTwo && !elfMoved)
                 {
-                    if (!elfLocations.Contains(new Point(x, y)))
-                    {
-                        count++;
-                    }
+                    Console.WriteLine($"First round where no elf moved: {i + 1}.");
+                    break;
                 }
             }
 
-            Console.WriteLine($"There are {count} empty ground tiles.");
+            if (!isPartTwo)
+            {
+                // Now find the smallest rectangle that contains all the elves, and count the number of empty tiles.
+                int minX = elfLocations.Min(p => p.X);
+                int maxX = elfLocations.Max(p => p.X);
+                int minY = elfLocations.Min(p => p.Y);
+                int maxY = elfLocations.Max(p => p.Y);
+
+                int count = 0;
+                for (y = minY; y <= maxY; y++)
+                {
+                    for (int x = minX; x <= maxX; x++)
+                    {
+                        if (!elfLocations.Contains(new Point(x, y)))
+                        {
+                            count++;
+                        }
+                    }
+                }
+
+                Console.WriteLine($"There are {count} empty ground tiles.");
+            }
         }
 
         public static void PrintMap(HashSet<Point> elfLocations, string title, bool isTest)

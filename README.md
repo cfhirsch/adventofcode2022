@@ -22,4 +22,4 @@ Days that have been solved so far (both parts are solved unless otherwise specif
 - Dec 18
 - Dec 21
 - Dec 22 (Part One Only)
-- Dec 23 (Part One Only)
+- Dec 23
