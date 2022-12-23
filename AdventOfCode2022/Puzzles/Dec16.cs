@@ -123,8 +123,8 @@ namespace AdventOfCode2022.Puzzles
             var sb = new StringBuilder();
             sb.Append($"{valve1.Label},{valve2.Label},{{");
             sb.Append(string.Join(",", set1.Select(v => v.Label).OrderBy(v => v).ToArray()));
-            sb.Append("}},");
-            sb.Append(string.Join(",", set1.Select(v => v.Label).OrderBy(v => v).ToArray()));
+            sb.Append("},{");
+            sb.Append(string.Join(",", set2.Select(v => v.Label).OrderBy(v => v).ToArray()));
             sb.Append($"}},{minutesLeft}");
 
             return sb.ToString();
