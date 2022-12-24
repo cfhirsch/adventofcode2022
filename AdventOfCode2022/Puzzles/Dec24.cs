@@ -5,7 +5,7 @@ namespace AdventOfCode2022.Puzzles
 {
     internal static class Dec24
     {
-        public static void SolvePartOne(bool isTest)
+        public static void SolvePartOne(bool isTest = false, bool show = false)
         {
             List<string> lines = PuzzleReader.ReadLines(24, isTest).ToList();
 
@@ -35,6 +35,9 @@ namespace AdventOfCode2022.Puzzles
             while (queue.Count() > 0) 
             {
                 BlizzardQueueEntry current = queue.Dequeue();
+
+                PrintMap(current.Location, current.Blizzards, maxX, maxY, current.Minute, show);
+
                 if (current.Location == exit)
                 {
                     Console.WriteLine($"Reached exit in {current.Minute} minutes.");
@@ -64,25 +67,98 @@ namespace AdventOfCode2022.Puzzles
         {
             yield return pt;
 
-            if (pt.X > 1)
-            {
-                yield return new Point(pt.X - 1, pt.Y);
-            }
-
-            if (pt.X < maxX - 2)
-            {
-                yield return new Point(pt.X + 1, pt.Y);
-            }
-
-            if (pt.Y > 1)
+            // Can we move up?
+            if (pt.Y > 1 || (pt.Y == 1 && pt.X == 1))
             {
                 yield return new Point(pt.X, pt.Y - 1);
             }
 
-            if (pt.X < maxY- 2)
+            // Can we move to the right?
+            if (pt.Y > 0 && pt.X < maxX - 2)
+            {
+                yield return new Point(pt.X + 1, pt.Y);
+            }
+
+            // Can we move to the left?
+            if (pt.Y > 0 && pt.X > 1)
+            {
+                yield return new Point(pt.X - 1, pt.Y);
+            }
+
+            // Can we move down?
+            if (pt.Y < maxY - 2 || (pt.Y == maxY - 1 && pt.X == maxX - 2))
             {
                 yield return new Point(pt.X, pt.Y + 1);
             }
+        }
+
+        private static void PrintMap(
+            Point location,
+            List<Blizzard> blizzards,
+            int maxX,
+            int maxY,
+            int minute,
+            bool show)
+        {
+            if (!show)
+            {
+                return;
+            }
+
+            Console.WriteLine($"== Minute {minute} ==");
+
+            for (int y = 0; y < maxY; y++)
+            {
+                for (int x = 0; x < maxX; x++)
+                {
+                    var pt = new Point(x, y);
+                    if (location == pt)
+                    {
+                        Console.Write("E");
+                    }
+                    else if (blizzards.Any(p => p.Location == pt))
+                    {
+                        IEnumerable<Blizzard> matchingBliz = blizzards.Where(p => p.Location == pt);
+                        int count = matchingBliz.Count();
+                        if (count == 1)
+                        {
+                            Console.Write(matchingBliz.First().Direction);
+                        }
+                        else
+                        {
+                            Console.Write(count);
+                        }
+                    }
+                    // Top wall.
+                    else if (y == 0 && x != 1)
+                    {
+                        Console.Write('#');
+                    }
+                    // Left wall
+                    else if (x == 0)
+                    {
+                        Console.Write('#');
+                    }
+                    // Right wall
+                    else if (x == maxX - 1)
+                    {
+                        Console.Write('#');
+                    }
+                    // Bottom wall.
+                    else if (y == maxY - 1 && x != maxX - 2)
+                    {
+                        Console.Write('#');
+                    }
+                    else
+                    {
+                        Console.Write('.');
+                    }
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.WriteLine();
         }
     }
 
@@ -130,7 +206,7 @@ namespace AdventOfCode2022.Puzzles
                 x = maxX - 2;
             }
 
-            if (x >= maxX)
+            if (x >= maxX - 1)
             {
                 x = 1;
             }
@@ -140,7 +216,7 @@ namespace AdventOfCode2022.Puzzles
                 y = maxY - 2;
             }
 
-            if (y >= maxY)
+            if (y >= maxY - 1)
             {
                 y = 1;
             }
@@ -175,8 +251,8 @@ namespace AdventOfCode2022.Puzzles
 
         public int CompareTo(BlizzardQueueEntry other)
         {
-            int thisScore = this.GetScore();
-            int otherScore = other.GetScore();
+            int thisScore = this.Score;
+            int otherScore = other.Score;
 
             if (thisScore < otherScore)
             {
@@ -191,9 +267,12 @@ namespace AdventOfCode2022.Puzzles
             return 0;
         }
 
-        internal int GetScore()
+        public int Score
         {
-            return Manhattan(this.Location, this.start) + Manhattan(this.Location, this.end);
+            get
+            {
+                return Manhattan(this.Location, this.end) + this.Minute;
+            }
         }
 
         private static int Manhattan(Point p1, Point p2)
