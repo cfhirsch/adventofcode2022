@@ -23,3 +23,4 @@ Days that have been solved so far (both parts are solved unless otherwise specif
 - Dec 21
 - Dec 22 (Part One Only)
 - Dec 23
+- Dec 25 (Part One Only)

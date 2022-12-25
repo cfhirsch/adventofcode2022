@@ -143,4 +143,4 @@ Dec24.SolvePartOne(isTest: true, show: true);*/
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 25");
 Console.WriteLine("=========================================================================");
-Dec25.SolvePartOne(isTest: true);
+Dec25.SolvePartOne(isTest: false);

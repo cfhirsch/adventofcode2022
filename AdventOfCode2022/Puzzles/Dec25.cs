@@ -10,21 +10,23 @@ namespace AdventOfCode2022.Puzzles
             long sum = 0;
             foreach (string line in PuzzleReader.ReadLines(25, isTest))
             {
+                long num = 0;
+
                 long powerOf = 1;
                 for (int i = line.Length - 1; i >= 0; i--)
                 {
                     int digit = 0;
                     if (Int32.TryParse(line[i].ToString(), out digit))
                     {
-                        sum += powerOf * digit;
+                        num += powerOf * digit;
                     }
                     else if (line[i] == '-')
                     {
-                        sum += -1 * powerOf;
+                        num += -1 * powerOf;
                     }
                     else if (line[i] == '=')
                     {
-                        sum += -2 * powerOf;
+                        num += -2 * powerOf;
                     }
                     else
                     {
@@ -34,11 +36,13 @@ namespace AdventOfCode2022.Puzzles
                     powerOf *= 5;
                 }
 
-                string reverse = DecToBase5(sum);
-                Console.WriteLine($"Original = {line}, Dec = {sum}, Base5 = {reverse}.");
+                sum += num;
+                string reverse = DecToBase5(num);
+                Console.WriteLine($"Original = {line}, Dec = {num}, Base5 = {reverse}.");
             }
 
-
+            string snafuNum = DecToBase5(sum);
+            Console.WriteLine($"SNAFU num = {snafuNum}.");
         }
 
         private static string DecToBase5(long number)
@@ -46,7 +50,7 @@ namespace AdventOfCode2022.Puzzles
             var sb = new StringBuilder();
 
             int pow = 0;
-            int divisor = 1;
+            long divisor = 1;
             while (Math.Round(number / (1.0 * divisor), MidpointRounding.ToEven) > 2)
             {
                 pow++;
@@ -60,7 +64,7 @@ namespace AdventOfCode2022.Puzzles
 
             temp *= quotient;
 
-            while (temp != number)
+            while (divisor > 1)
             {
                 divisor /= 5;
                 if (temp > number)
@@ -109,12 +113,6 @@ namespace AdventOfCode2022.Puzzles
                             throw new ArgumentException($"Unexpected quotient {quotient}.");
                     }
                 }
-            }
-
-            while (divisor > 1)
-            {
-                sb.Append("0");
-                divisor--;
             }
 
             return sb.ToString();
