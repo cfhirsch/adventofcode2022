@@ -133,9 +133,14 @@ Console.WriteLine("=============================================================
 Console.WriteLine("Day 23");
 Console.WriteLine("=========================================================================");
 Dec23.Solve(isTest: false);
-Dec23.Solve(isTest: false, isPartTwo: true);*/
+Dec23.Solve(isTest: false, isPartTwo: true);
 
 Console.WriteLine("=========================================================================");
 Console.WriteLine("Day 24");
 Console.WriteLine("=========================================================================");
-Dec24.SolvePartOne(isTest: true, show: true);
+Dec24.SolvePartOne(isTest: true, show: true);*/
+
+Console.WriteLine("=========================================================================");
+Console.WriteLine("Day 25");
+Console.WriteLine("=========================================================================");
+Dec25.SolvePartOne(isTest: true);
