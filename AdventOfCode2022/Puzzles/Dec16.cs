@@ -1,4 +1,7 @@
 ﻿using AdventOfCode2022.Utilities;
+using System.Reflection;
+using System.Security;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -38,7 +41,7 @@ namespace AdventOfCode2022.Puzzles
                 }
             }
 
-            Dictionary<(Valve, Valve), int> dist = BuildDistDict(valveDict);
+            Dictionary<(Valve, Valve), int> dist = BuildDistDict(valveDict, out _);
 
             /*foreach (KeyValuePair<(Valve, Valve), int> kvp in dist)
             {
@@ -90,18 +93,41 @@ namespace AdventOfCode2022.Puzzles
                 }
             }
 
-            Dictionary<(Valve, Valve), int> dist = BuildDistDict(valveDict);
+            var nextInPath = new Dictionary<(Valve, Valve), Valve>();
+
+            Dictionary<(Valve, Valve), int> dist = BuildDistDict(valveDict, out nextInPath);
 
             Valve start = valveDict["AA"];
 
             HashSet<Valve> humanReachable = Reachable(start, closedValves, dist, 26);
             HashSet<Valve> elephantReachable = Reachable(start, closedValves, dist, 26);
 
-            (Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) key = (start, start, humanReachable, elephantReachable, 26);
+            int max = 0;
+            foreach (Valve humanTarget in humanReachable)
+            {
+                foreach (Valve elephantTarget in elephantReachable)
+                {
+                    if (humanTarget == elephantTarget)
+                    {
+                        continue;
+                    }
 
-            int maxFlow = FindMaximalFlow2(memoized, valveDict, dist, key);
+                    var key = (start, start, humanTarget, elephantTarget, humanReachable, elephantReachable, 26);
+                    int result = FindMaximalFlow2(
+                        memoized,
+                        valveDict,
+                        dist,
+                        nextInPath,
+                        key);
 
-            Console.WriteLine($"Maximal flow is {maxFlow}.");
+                    if (result > max)
+                    {
+                        result = max;
+                    }
+                }
+            }
+
+            Console.WriteLine($"Maximal flow is {max}.");
         }
 
         private static string GetKey((Valve, HashSet<Valve>, int) key)
@@ -116,12 +142,12 @@ namespace AdventOfCode2022.Puzzles
             return sb.ToString();
         }
 
-        private static string GetKey2((Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) key)
+        private static string GetKey2((Valve, Valve, Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) key)
         {
-            (Valve valve1, Valve valve2, HashSet<Valve> set1, HashSet<Valve> set2, int minutesLeft) = key;
+            (Valve valve1, Valve valve2, Valve target1, Valve target2, HashSet<Valve> set1, HashSet<Valve> set2, int minutesLeft) = key;
 
             var sb = new StringBuilder();
-            sb.Append($"{valve1.Label},{valve2.Label},{{");
+            sb.Append($"{valve1.Label},{valve2.Label},{target1.Label}, {target2.Label},{{");
             sb.Append(string.Join(",", set1.Select(v => v.Label).OrderBy(v => v).ToArray()));
             sb.Append("},{");
             sb.Append(string.Join(",", set2.Select(v => v.Label).OrderBy(v => v).ToArray()));
@@ -129,14 +155,18 @@ namespace AdventOfCode2022.Puzzles
 
             return sb.ToString();
         }
-        
-        private static Dictionary<(Valve, Valve), int> BuildDistDict(Dictionary<string, Valve> valveDict)
+
+        private static Dictionary<(Valve, Valve), int> BuildDistDict(
+            Dictionary<string, Valve> valveDict,
+            out Dictionary<(Valve, Valve), Valve> nextInPath)
         {
             var dict = new Dictionary<(Valve, Valve), int>();
+            nextInPath = new Dictionary<(Valve, Valve), Valve>();
 
             foreach (Valve source in valveDict.Values)
             {
                 var queue = new PriorityQueue<QueueItem>();
+                var pred = new Dictionary<(Valve, Valve), Valve>();
 
                 foreach (Valve valve in valveDict.Values)
                 {
@@ -144,7 +174,7 @@ namespace AdventOfCode2022.Puzzles
 
                     dict[(source, valve)] = distance;
 
-                    queue.Enqueue(new QueueItem {  Distance = distance, Valve = valve });
+                    queue.Enqueue(new QueueItem { Distance = distance, Valve = valve });
                 }
 
                 while (queue.Count() > 0)
@@ -158,9 +188,10 @@ namespace AdventOfCode2022.Puzzles
                         if (alt < dict[(source, neighbor)])
                         {
                             dict[(source, neighbor)] = alt;
+                            pred[(source, neighbor)] = currentValve;
 
                             if (queue.Data.Any(q => q.Valve == neighbor))
-                            { 
+                            {
                                 QueueItem queueItem = queue.Data.First(q => q.Valve == neighbor);
                                 queue.Data.Remove(queueItem);
                             }
@@ -168,6 +199,11 @@ namespace AdventOfCode2022.Puzzles
                             queue.Enqueue(new QueueItem { Valve = neighbor, Distance = alt });
                         }
                     }
+                }
+
+                foreach (KeyValuePair<(Valve, Valve), Valve> kvp in pred)
+                {
+                    nextInPath[(kvp.Key.Item1, kvp.Value)] = kvp.Key.Item2;
                 }
             }
 
@@ -277,219 +313,141 @@ namespace AdventOfCode2022.Puzzles
             Dictionary<string, int> memoized,
             Dictionary<string, Valve> valveDict,
             Dictionary<(Valve, Valve), int> dist,
-            (Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) key)
+            Dictionary<(Valve, Valve), Valve> nextInPath,
+            (Valve, Valve, Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) key)
         {
-            (Valve humanValve, Valve elephantValve, HashSet<Valve> humanReachable, HashSet<Valve> elephantReachable, int minutesLeft) = key;
+            (Valve humanCurrent,
+                Valve elephantCurrent,
+                Valve humanTarget,
+                Valve elephantTarget,
+                HashSet<Valve> humanReachable, HashSet<Valve> elephantReachable, int minutesLeft) = key;
 
-            Console.SetCursorPosition(0, 10);
-            Console.WriteLine($"Minutes left = {minutesLeft}.");
-
-            if (minutesLeft <= 1)
+            if (minutesLeft < 2)
             {
                 return 0;
             }
 
-            if (minutesLeft == 2 || (!humanReachable.Any() && !elephantReachable.Any()))
+            int flow = 0;
+            if (minutesLeft == 2)
             {
-                int flow = 0;
-                if (humanReachable.Contains(humanValve))
+                if (humanCurrent == humanTarget)
                 {
-                    flow += humanValve.FlowRate * (minutesLeft - 1);
+                    flow += humanCurrent.FlowRate;
                 }
 
-                if (elephantValve != humanValve && elephantReachable.Contains(elephantValve))
+                if (elephantCurrent == elephantTarget)
                 {
-                    flow += elephantValve.FlowRate * (minutesLeft - 1);
+                    flow += elephantCurrent.FlowRate;
                 }
 
                 return flow;
             }
 
-            int maxWithoutHumanWithoutElephant = 0;
-            int maxWithoutHumanWithElephant = 0;
-            int maxWithHumanWithoutElephant = 0;
-            int maxWithHumanWithElephant = 0;
+            var nextHumanValves = new List<(Valve?, Valve?)>();
+            var nextElephantValves = new List<(Valve?, Valve?)>();
 
-            // Calculate what closed valves are reachable on the next turn in the time remaining, if the current valve
-            // is closed and the agent spends this turn opening their valve.
-            HashSet<Valve> humanReachableWith = Reachable(
-                humanValve,
-                humanReachable.Except(new[] { humanValve }).ToHashSet(),
-                dist,
-                minutesLeft - 1);
-
-            HashSet<Valve> elephantReachableWith = Reachable(
-                elephantValve,
-                elephantReachable.Except(new[] { elephantValve }).ToHashSet(),
-                dist,
-                minutesLeft - 1);
-
-            int max;
-
-            (Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) subkey, subkey2;
-            string subkeyStr, subkeyStr2;
-
-            // If the human and elephant are at different valves, and both are closed,
-            // comsoider the solution where both human and elephant open their valves on this turn
-            if (humanValve != elephantValve && humanReachable.Contains(humanValve) && elephantReachable.Contains(elephantValve))
+            if (humanCurrent == humanTarget)
             {
-                subkey = (
-                    humanValve,
-                    elephantValve,
-                    humanReachableWith.Except(new[] { elephantValve }).ToHashSet(),
-                    elephantReachableWith.Except(new[] { humanValve }).ToHashSet(),
+                flow += humanTarget.FlowRate * (minutesLeft - 1);
+                humanReachable = Reachable(
+                    humanCurrent, 
+                    humanReachable.Except(new[] { humanTarget }).ToHashSet(),
+                    dist,
                     minutesLeft - 1);
-                subkeyStr = GetKey2(subkey);
-                if (!memoized.ContainsKey(subkeyStr))
+                elephantReachable = Reachable(
+                    elephantCurrent,
+                    elephantReachable.Except(new[] { humanTarget }).ToHashSet(),
+                    dist,
+                    minutesLeft - 1);
+
+                foreach (Valve nextHuman in humanReachable)
                 {
-                    memoized[subkeyStr] = FindMaximalFlow2(memoized, valveDict, dist, subkey);
-
-                    subkey2 = (
-                        elephantValve,
-                        humanValve,
-                        elephantReachableWith.Except(new[] { humanValve }).ToHashSet(),
-                        humanReachableWith.Except(new[] { elephantValve }).ToHashSet(),
-                        minutesLeft - 1);
-
-                    subkeyStr2 = GetKey2(subkey2);
-
-                    memoized[subkeyStr2] = memoized[subkeyStr];
-                }
-
-                max = (humanValve.FlowRate * (minutesLeft - 1)) +
-                      (elephantValve.FlowRate * (minutesLeft - 1)) +
-                      memoized[subkeyStr];
-                if (max > maxWithHumanWithElephant)
-                {
-                    maxWithHumanWithElephant = max;
+                    nextHumanValves.Add((nextInPath[(humanCurrent, nextHuman)], nextHuman));
                 }
             }
-
-            // If the elephant's valve is closed, consider all the subproblems where the elephant spends this minute
-            // opening its valve, while the human spends the turn moving to a neighboring valve.
-            if (elephantReachable.Contains(elephantValve))
+            else if (humanTarget != null)
             {
-                foreach(string humanLabel in humanValve.Neighbors)
-                {
-                    Valve humanNeighbor = valveDict[humanLabel];
-                    HashSet<Valve> humanReachableWithout = Reachable(
-                        humanNeighbor, 
-                        humanReachable.Except(new[] { elephantValve }).ToHashSet(), 
-                        dist, 
-                        minutesLeft - 1);
-
-                    subkey = (humanNeighbor, elephantValve, humanReachableWithout, elephantReachableWith, minutesLeft - 1);
-                    subkeyStr = GetKey2(subkey);
-                    if (!memoized.ContainsKey(subkeyStr))
-                    {
-                        memoized[subkeyStr] = FindMaximalFlow2(memoized, valveDict, dist, subkey);
-
-                        subkey2 = (
-                            elephantValve,
-                            humanNeighbor,
-                            elephantReachableWith,
-                            humanReachableWithout,
-                            minutesLeft - 1);
-
-                        subkeyStr2 = GetKey2(subkey2);
-
-                        memoized[subkeyStr2] = memoized[subkeyStr];
-                    }
-
-                    max = (elephantValve.FlowRate * (minutesLeft - 1)) + memoized[subkeyStr];
-                    if (max > maxWithoutHumanWithElephant)
-                    {
-                        maxWithoutHumanWithElephant = max;
-                    }
-                }
+                nextHumanValves.Add((nextInPath[(humanCurrent, humanTarget)], humanTarget));
             }
 
-            // If the humans's valve is closed, consider all the subproblems where the human spends this minute
-            // opening its valve, while the elephant spends the turn moving to a neighboring valve.
-            if (humanReachable.Contains(humanValve))
+            if (elephantCurrent == elephantTarget)
             {
-                foreach (string elephantLabel in elephantValve.Neighbors)
+                flow += elephantTarget.FlowRate * (minutesLeft - 1);
+                humanReachable = Reachable(
+                    humanCurrent,
+                    humanReachable.Except(new[] { elephantTarget }).ToHashSet(),
+                    dist,
+                    minutesLeft - 1);
+                elephantReachable = Reachable(
+                    elephantCurrent,
+                    elephantReachable.Except(new[] { elephantTarget }).ToHashSet(),
+                    dist,
+                    minutesLeft - 1);
+
+                foreach (Valve nextElephant in elephantReachable)
                 {
-                    Valve elephantNeighbor = valveDict[elephantLabel];
-                    HashSet<Valve> elephantReachableWithout = Reachable(
-                        elephantNeighbor,
-                        elephantReachable.Except(new[] { humanValve }).ToHashSet(),
-                        dist,
-                        minutesLeft - 1);
-
-                    subkey = (humanValve, elephantNeighbor, humanReachableWith, elephantReachableWithout, minutesLeft - 1);
-                    subkeyStr = GetKey2(subkey);
-                    if (!memoized.ContainsKey(subkeyStr))
-                    {
-                        memoized[subkeyStr] = FindMaximalFlow2(memoized, valveDict, dist, subkey);
-
-                        subkey2 = (
-                            elephantNeighbor,
-                            humanValve,
-                            elephantReachableWithout,
-                            humanReachableWith,
-                            minutesLeft - 1);
-
-                        subkeyStr2 = GetKey2(subkey2);
-
-                        memoized[subkeyStr2] = memoized[subkeyStr];
-                    }
-
-                    max = (humanValve.FlowRate * (minutesLeft - 1)) + memoized[subkeyStr];
-                    if (max > maxWithHumanWithoutElephant)
-                    {
-                        maxWithHumanWithoutElephant = max;
-                    }
+                    nextElephantValves.Add((nextInPath[(elephantCurrent, nextElephant)], nextElephant));
                 }
             }
-
-            // Now consider all the subproblems where both human and elephant spend the current turn moving to a neighbor.
-            foreach (string humanLabel in humanValve.Neighbors)
+            else if (elephantTarget != null)
             {
-                foreach (string elephantLabel in elephantValve.Neighbors)
+                nextElephantValves.Add((nextInPath[(elephantCurrent, elephantTarget)], elephantTarget));
+            }
+
+            if (!nextHumanValves.Any())
+            {
+                nextHumanValves.Add((humanCurrent, null));
+            }
+
+            if (!nextElephantValves.Any())
+            {
+                nextElephantValves.Add((elephantCurrent, null));
+            }
+
+            int max = 0;
+            foreach (var (h1, h2) in nextHumanValves)
+            {
+                foreach (var (e1, e2) in nextElephantValves)
                 {
-                    Valve humanNeighbor = valveDict[humanLabel];
-                    Valve elephantNeighbor = valveDict[elephantLabel];
-
-                    HashSet<Valve> humanReachableWithout = Reachable(humanNeighbor, humanReachable, dist, minutesLeft - 1);
-
-                    HashSet<Valve> elephantReachableWithout = Reachable(elephantNeighbor, elephantReachable, dist, minutesLeft - 1);
-                    
-                    // Consider solution where both human and elephant move to their neighbors 
-                    // on this turn.
-                    subkey = (humanNeighbor, elephantNeighbor, humanReachableWithout, elephantReachableWithout, minutesLeft - 1);
-                    subkeyStr = GetKey2(subkey);
-                    if (!memoized.ContainsKey(subkeyStr))
+                    if (h2 != null && e2 != null && h2 == e2)
                     {
-                        memoized[subkeyStr] = FindMaximalFlow2(memoized, valveDict, dist, subkey);
-
-                        subkey2 = (
-                            elephantNeighbor,
-                            humanNeighbor,
-                            elephantReachableWithout,
-                            humanReachableWithout,
-                            minutesLeft - 1);
-
-                        subkeyStr2 = GetKey2(subkey2);
-
-                        memoized[subkeyStr2] = memoized[subkeyStr];
+                        continue;
                     }
 
-                    max = memoized[subkeyStr];
-                    if (max > maxWithoutHumanWithoutElephant)
+                    var subKey = (h1, e1, h2, e2, humanReachable, elephantReachable, minutesLeft - 1);
+                    var subKeyStr = GetKey2(subKey);
+
+                    if (!memoized.ContainsKey(subKeyStr))
                     {
-                        maxWithoutHumanWithoutElephant = max;
+                        memoized[subKeyStr] = FindMaximalFlow2(
+                            memoized,
+                            valveDict,
+                            dist,
+                            nextInPath,
+                            key);
+
+                        var subKey2 = (e1, h1, e2, h2, elephantReachable, humanReachable, minutesLeft - 1);
+                        var subKeyStr2 = GetKey2(subKey2);
+
+                        memoized[subKeyStr2] = memoized[subKeyStr];
+                    }
+
+                    int result = memoized[subKeyStr];
+
+                    if (result > max)
+                    {
+                        max = result;
                     }
                 }
             }
 
-            return (new[] { maxWithoutHumanWithoutElephant, maxWithHumanWithoutElephant, maxWithoutHumanWithElephant, maxWithHumanWithElephant }).Max();
+            return flow + max;
         }
 
         private static HashSet<Valve> Reachable(
-            Valve currentValve, 
+            Valve currentValve,
             HashSet<Valve> valves,
-            Dictionary<(Valve, Valve), int> dist, 
+            Dictionary<(Valve, Valve), int> dist,
             int minutesLeft)
         {
             return valves.Where(v => dist[(currentValve, v)] < minutesLeft - 1).ToHashSet();
