@@ -93,26 +93,35 @@ namespace AdventOfCode2022.Puzzles
                 }
             }
 
-            var nextInPath = new Dictionary<(Valve, Valve), Valve>();
+            var nextInPath = new Dictionary<(Valve, Valve), List<Valve>>();
 
-            Dictionary<(Valve, Valve), int> dist = BuildDistDict(valveDict, out nextInPath);
+            Dictionary<(Valve, Valve), int> dist = BuildDistDict2(valveDict, out nextInPath);
 
             Valve start = valveDict["AA"];
 
             HashSet<Valve> humanReachable = Reachable(start, closedValves, dist, 26);
             HashSet<Valve> elephantReachable = Reachable(start, closedValves, dist, 26);
 
-            int max = 0;
-            foreach (Valve humanTarget in humanReachable)
-            {
-                foreach (Valve elephantTarget in elephantReachable)
-                {
-                    if (humanTarget == elephantTarget)
-                    {
-                        continue;
-                    }
+            List<Valve> humanList = humanReachable.ToList();
+            List<Valve> elephantList = elephantReachable.ToList();
 
-                    var key = (start, start, humanTarget, elephantTarget, humanReachable, elephantReachable, 26);
+            int max = 0;
+            for (int i = 0; i < humanList.Count - 1; i++)
+            {
+                for (int j = i + 1; j < elephantList.Count; j++)
+                {
+                    Valve humanTarget = humanList[i];
+                    Valve elephantTarget = elephantList[j];
+
+                    var key = (
+                        start, 
+                        start, 
+                        humanTarget, 
+                        elephantTarget, 
+                        humanReachable.Except(new[] { elephantTarget }).ToHashSet(),
+                        elephantReachable.Except(new[] { humanTarget }).ToHashSet(), 
+                        26);
+
                     int result = FindMaximalFlow2(
                         memoized,
                         valveDict,
@@ -122,7 +131,7 @@ namespace AdventOfCode2022.Puzzles
 
                     if (result > max)
                     {
-                        result = max;
+                        max = result;
                     }
                 }
             }
@@ -147,7 +156,7 @@ namespace AdventOfCode2022.Puzzles
             (Valve valve1, Valve valve2, Valve target1, Valve target2, HashSet<Valve> set1, HashSet<Valve> set2, int minutesLeft) = key;
 
             var sb = new StringBuilder();
-            sb.Append($"{valve1.Label},{valve2.Label},{target1.Label}, {target2.Label},{{");
+            sb.Append($"{valve1.Label},{valve2.Label},{target1?.Label},{target2?.Label},{{");
             sb.Append(string.Join(",", set1.Select(v => v.Label).OrderBy(v => v).ToArray()));
             sb.Append("},{");
             sb.Append(string.Join(",", set2.Select(v => v.Label).OrderBy(v => v).ToArray()));
@@ -158,10 +167,10 @@ namespace AdventOfCode2022.Puzzles
 
         private static Dictionary<(Valve, Valve), int> BuildDistDict(
             Dictionary<string, Valve> valveDict,
-            out Dictionary<(Valve, Valve), Valve> nextInPath)
+            out Dictionary<(Valve, Valve), List<Valve>> shortestPaths)
         {
             var dict = new Dictionary<(Valve, Valve), int>();
-            nextInPath = new Dictionary<(Valve, Valve), Valve>();
+            shortestPaths = new Dictionary<(Valve, Valve), List<Valve>>();
 
             foreach (Valve source in valveDict.Values)
             {
@@ -188,6 +197,9 @@ namespace AdventOfCode2022.Puzzles
                         if (alt < dict[(source, neighbor)])
                         {
                             dict[(source, neighbor)] = alt;
+
+                            // pred[(s, t)] is the predecessor of t in the 
+                            // shortest path from s to t.
                             pred[(source, neighbor)] = currentValve;
 
                             if (queue.Data.Any(q => q.Valve == neighbor))
@@ -200,10 +212,48 @@ namespace AdventOfCode2022.Puzzles
                         }
                     }
                 }
+            }
 
-                foreach (KeyValuePair<(Valve, Valve), Valve> kvp in pred)
+            return dict;
+        }
+
+        private static Dictionary<(Valve, Valve), int> BuildDistDict2(
+           Dictionary<string, Valve> valveDict,
+           out Dictionary<(Valve, Valve), List<Valve>> shortestPaths)
+        {
+            var dict = new Dictionary<(Valve, Valve), int>();
+            shortestPaths = new Dictionary<(Valve, Valve), List<Valve>>();
+
+            foreach (Valve source in valveDict.Values)
+            {
+                var queue = new Queue<(Valve, List<Valve>)>();
+                var visited = new HashSet<Valve>();
+
+                queue.Enqueue((source, new List<Valve>()));
+                visited.Add(source);
+
+                dict[(source, source)] = 0;
+
+                while (queue.Count() > 0)
                 {
-                    nextInPath[(kvp.Key.Item1, kvp.Value)] = kvp.Key.Item2;
+                    (Valve currentValve, List<Valve> path) = queue.Dequeue();
+                    foreach (string neighborLabel in currentValve.Neighbors)
+                    {
+                        Valve neighbor = valveDict[neighborLabel];
+                        if (!visited.Contains(neighbor))
+                        {
+                            visited.Add(neighbor);
+
+                            List<Valve> newPath = new List<Valve>(path);
+                            newPath.Add(neighbor);
+
+                            shortestPaths.Add((source, neighbor), newPath);
+
+                            dict[(source, neighbor)] = newPath.Count;
+
+                            queue.Enqueue((neighbor, newPath));
+                        }
+                    }
                 }
             }
 
@@ -313,7 +363,7 @@ namespace AdventOfCode2022.Puzzles
             Dictionary<string, int> memoized,
             Dictionary<string, Valve> valveDict,
             Dictionary<(Valve, Valve), int> dist,
-            Dictionary<(Valve, Valve), Valve> nextInPath,
+            Dictionary<(Valve, Valve), List<Valve>> nextInPath,
             (Valve, Valve, Valve, Valve, HashSet<Valve>, HashSet<Valve>, int) key)
         {
             (Valve humanCurrent,
@@ -350,7 +400,7 @@ namespace AdventOfCode2022.Puzzles
             {
                 flow += humanTarget.FlowRate * (minutesLeft - 1);
                 humanReachable = Reachable(
-                    humanCurrent, 
+                    humanCurrent,
                     humanReachable.Except(new[] { humanTarget }).ToHashSet(),
                     dist,
                     minutesLeft - 1);
@@ -362,12 +412,12 @@ namespace AdventOfCode2022.Puzzles
 
                 foreach (Valve nextHuman in humanReachable)
                 {
-                    nextHumanValves.Add((nextInPath[(humanCurrent, nextHuman)], nextHuman));
+                    nextHumanValves.Add((nextInPath[(humanCurrent, nextHuman)].First(), nextHuman));
                 }
             }
             else if (humanTarget != null)
             {
-                nextHumanValves.Add((nextInPath[(humanCurrent, humanTarget)], humanTarget));
+                nextHumanValves.Add((nextInPath[(humanCurrent, humanTarget)].First(), humanTarget));
             }
 
             if (elephantCurrent == elephantTarget)
@@ -386,12 +436,17 @@ namespace AdventOfCode2022.Puzzles
 
                 foreach (Valve nextElephant in elephantReachable)
                 {
-                    nextElephantValves.Add((nextInPath[(elephantCurrent, nextElephant)], nextElephant));
+                    nextElephantValves.Add((nextInPath[(elephantCurrent, nextElephant)].First(), nextElephant));
                 }
             }
             else if (elephantTarget != null)
             {
-                nextElephantValves.Add((nextInPath[(elephantCurrent, elephantTarget)], elephantTarget));
+                nextElephantValves.Add((nextInPath[(elephantCurrent, elephantTarget)].First(), elephantTarget));
+            }
+
+            if (!nextHumanValves.Any() && !nextElephantValves.Any())
+            {
+                return flow;
             }
 
             if (!nextHumanValves.Any())
@@ -414,7 +469,14 @@ namespace AdventOfCode2022.Puzzles
                         continue;
                     }
 
-                    var subKey = (h1, e1, h2, e2, humanReachable, elephantReachable, minutesLeft - 1);
+                    var subKey = (
+                        h1, 
+                        e1, 
+                        h2, 
+                        e2, 
+                        humanReachable.Except(new[] { e2 }).ToHashSet(),
+                        elephantReachable.Except(new[] { h2 }).ToHashSet(), 
+                        minutesLeft - 1);
                     var subKeyStr = GetKey2(subKey);
 
                     if (!memoized.ContainsKey(subKeyStr))
@@ -424,9 +486,16 @@ namespace AdventOfCode2022.Puzzles
                             valveDict,
                             dist,
                             nextInPath,
-                            key);
+                            subKey);
 
-                        var subKey2 = (e1, h1, e2, h2, elephantReachable, humanReachable, minutesLeft - 1);
+                        var subKey2 = (
+                            e1, 
+                            h1, 
+                            e2, 
+                            h2,
+                            elephantReachable.Except(new[] { h2 }).ToHashSet(),
+                            humanReachable.Except(new[] { e2 }).ToHashSet(),
+                            minutesLeft - 1);
                         var subKeyStr2 = GetKey2(subKey2);
 
                         memoized[subKeyStr2] = memoized[subKeyStr];
