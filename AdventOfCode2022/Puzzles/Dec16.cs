@@ -372,6 +372,8 @@ namespace AdventOfCode2022.Puzzles
                 Valve elephantTarget,
                 HashSet<Valve> humanReachable, HashSet<Valve> elephantReachable, int minutesLeft) = key;
 
+            Console.WriteLine($"{minutesLeft} minutes left.");
+
             if (minutesLeft < 2)
             {
                 return 0;
@@ -382,11 +384,13 @@ namespace AdventOfCode2022.Puzzles
             {
                 if (humanCurrent == humanTarget)
                 {
+                    Console.WriteLine($"Human opens valve {humanTarget.Label}.");
                     flow += humanCurrent.FlowRate;
                 }
 
                 if (elephantCurrent == elephantTarget)
                 {
+                    Console.WriteLine($"Elephant opens valve {elephantTarget.Label}.");
                     flow += elephantCurrent.FlowRate;
                 }
 
@@ -396,9 +400,12 @@ namespace AdventOfCode2022.Puzzles
             var nextHumanValves = new List<(Valve?, Valve?)>();
             var nextElephantValves = new List<(Valve?, Valve?)>();
 
+            bool humanOpenedValve = false, elephantOpenedValve = false;
+
             if (humanCurrent == humanTarget)
             {
                 flow += humanTarget.FlowRate * (minutesLeft - 1);
+                Console.WriteLine($"Human opens valve {humanTarget.Label}.");
                 humanReachable = Reachable(
                     humanCurrent,
                     humanReachable.Except(new[] { humanTarget }).ToHashSet(),
@@ -410,19 +417,13 @@ namespace AdventOfCode2022.Puzzles
                     dist,
                     minutesLeft - 1);
 
-                foreach (Valve nextHuman in humanReachable)
-                {
-                    nextHumanValves.Add((nextInPath[(humanCurrent, nextHuman)].First(), nextHuman));
-                }
+                humanOpenedValve = true;
             }
-            else if (humanTarget != null)
-            {
-                nextHumanValves.Add((nextInPath[(humanCurrent, humanTarget)].First(), humanTarget));
-            }
-
+            
             if (elephantCurrent == elephantTarget)
             {
                 flow += elephantTarget.FlowRate * (minutesLeft - 1);
+                Console.WriteLine($"Elephant opens valve {elephantTarget.Label}.");
                 humanReachable = Reachable(
                     humanCurrent,
                     humanReachable.Except(new[] { elephantTarget }).ToHashSet(),
@@ -434,6 +435,25 @@ namespace AdventOfCode2022.Puzzles
                     dist,
                     minutesLeft - 1);
 
+                elephantOpenedValve = true;
+            }
+            
+            if (humanOpenedValve)
+            {
+                foreach (Valve nextHuman in humanReachable)
+                {
+                    nextHumanValves.Add((nextInPath[(humanCurrent, nextHuman)].First(), nextHuman));
+                }
+            }
+            else if (humanTarget != null)
+            {
+                Valve next = nextInPath[(humanCurrent, humanTarget)].First();
+                Console.WriteLine($"Human moves to {next.Label}.");
+                nextHumanValves.Add((next, humanTarget));
+            }
+
+            if (elephantOpenedValve)
+            {
                 foreach (Valve nextElephant in elephantReachable)
                 {
                     nextElephantValves.Add((nextInPath[(elephantCurrent, nextElephant)].First(), nextElephant));
@@ -441,11 +461,14 @@ namespace AdventOfCode2022.Puzzles
             }
             else if (elephantTarget != null)
             {
-                nextElephantValves.Add((nextInPath[(elephantCurrent, elephantTarget)].First(), elephantTarget));
+                Valve next = nextInPath[(elephantCurrent, elephantTarget)].First();
+                Console.WriteLine($"Elephant moves to {next.Label}.");
+                nextElephantValves.Add((next, elephantTarget));
             }
 
             if (!nextHumanValves.Any() && !nextElephantValves.Any())
             {
+                Console.WriteLine("==  DONE ==");
                 return flow;
             }
 
@@ -479,8 +502,8 @@ namespace AdventOfCode2022.Puzzles
                         minutesLeft - 1);
                     var subKeyStr = GetKey2(subKey);
 
-                    if (!memoized.ContainsKey(subKeyStr))
-                    {
+                        if (!memoized.ContainsKey(subKeyStr))
+                    {   
                         memoized[subKeyStr] = FindMaximalFlow2(
                             memoized,
                             valveDict,
@@ -546,6 +569,8 @@ namespace AdventOfCode2022.Puzzles
 
     public class Valve
     {
+        private int openCount;
+
         public Valve(string label, int flowRate, List<string> neighbors)
         {
             this.Label = label;
